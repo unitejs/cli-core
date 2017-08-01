@@ -41,6 +41,14 @@ export class FileSystem implements IFileSystem {
         }
     }
 
+    public pathGetFilename(pathName: string): string {
+        if (pathName === undefined || pathName === null) {
+            return pathName;
+        } else {
+            return path.basename(this.cleanupSeparators(pathName));
+        }
+    }
+
     public async directoryExists(directoryName: string): Promise<boolean> {
         directoryName = this.pathFormat(directoryName);
         return new Promise<boolean>((resolve, reject) => {
@@ -193,6 +201,20 @@ export class FileSystem implements IFileSystem {
         });
     }
 
+    public async fileWriteBinary(directoryName: string, fileName: string, data: Uint8Array): Promise<void> {
+        directoryName = this.pathFormat(directoryName);
+
+        return new Promise<void>((resolve, reject) => {
+            fs.writeFile(path.join(directoryName, fileName), data, (err) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve();
+                }
+            });
+        });
+    }
+
     public async fileReadJson<T>(directoryName: string, fileName: string): Promise<T> {
         directoryName = this.pathFormat(directoryName);
 
@@ -221,6 +243,20 @@ export class FileSystem implements IFileSystem {
                     reject(err);
                 } else {
                     resolve(data.toString().replace(/\r/g, "").split("\n"));
+                }
+            });
+        });
+    }
+
+    public async fileReadBinary(directoryName: string, fileName: string): Promise<Uint8Array> {
+        directoryName = this.pathFormat(directoryName);
+
+        return new Promise<any>((resolve, reject) => {
+            fs.readFile(path.join(directoryName, fileName), (err, data) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(data.buffer);
                 }
             });
         });
