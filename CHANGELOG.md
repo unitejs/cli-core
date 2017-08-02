@@ -1,3 +1,6 @@
+# v0.6.2
+* Bugfix
+
 # v0.6.1
 * Additions for binary files
 
