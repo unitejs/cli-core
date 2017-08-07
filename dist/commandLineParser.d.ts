@@ -1,7 +1,6 @@
 /**
  * Command line parser for CLI
  */
-import { IDisplay } from "unitejs-framework/dist/interfaces/IDisplay";
 export declare class CommandLineParser {
     private _interpreter;
     private _script;
@@ -17,5 +16,4 @@ export declare class CommandLineParser {
     getNumberArgument(argumentName: string): number | undefined | null;
     getStringArgument(argumentName: string): string | undefined | null;
     hasArgument(argumentName: string): boolean;
-    diagnostics(display: IDisplay): void;
 }

@@ -1,8 +1,6 @@
 /**
  * Command line parser for CLI
  */
-import { IDisplay } from "unitejs-framework/dist/interfaces/IDisplay";
-
 export class CommandLineParser {
     private _interpreter: string;
     private _script: string;
@@ -103,12 +101,5 @@ export class CommandLineParser {
 
     public hasArgument(argumentName: string): boolean {
         return this._arguments && argumentName in this._arguments;
-    }
-
-    public diagnostics(display: IDisplay): void {
-        display.diagnostics(`Interpreter: ${this._interpreter ? this._interpreter : "Unknown"}`);
-        display.diagnostics(`Script: ${this._script ? this._script : "Unknown"}`);
-        display.diagnostics(`Command: ${this._command ? this._command : "Unknown"}`);
-        display.diagnostics(`Arguments: ${this._arguments ? JSON.stringify(this._arguments) : "None"}`);
     }
 }

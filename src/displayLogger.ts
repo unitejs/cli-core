@@ -1,11 +1,12 @@
 /**
  * Display class
  */
+import * as os from "os";
 import { ErrorHandler } from "unitejs-framework/dist/helpers/errorHandler";
-import { IDisplay } from "unitejs-framework/dist/interfaces/IDisplay";
+import { ILogger } from "unitejs-framework/dist/interfaces/ILogger";
 
 // tslint:disable:no-console
-export class Display implements IDisplay {
+export class DisplayLogger implements ILogger {
     private _colorsOn: boolean;
     private _colors: { [id: string]: { start: number; stop: number } };
 
@@ -44,42 +45,38 @@ export class Display implements IDisplay {
         };
     }
 
-    public banner(message: string): void {
-        console.log(this.colorStart("green") + message + this.colorStop("green"));
-    }
-
-    public log(message: string, args?: { [id: string]: any }): void {
-        if (args) {
-            console.log(`${this.colorStart("white")}${message}: ${this.colorStop("white")}${this.colorStart("cyan")}${this.arrayToReadable(args)}${this.colorStop("cyan")}`);
-        } else {
-            console.log(this.colorStart("white") + message + this.colorStop("white"));
-        }
+    public banner(message: string, args?: { [id: string]: any }): void {
+        this.display("green", "white", message, args);
     }
 
     public info(message: string, args?: { [id: string]: any }): void {
-        if (args) {
-            console.log(`${this.colorStart("cyan")}${ message}: ${this.arrayToReadable(args)}${this.colorStop("cyan")}`);
-        } else {
-            console.log(this.colorStart("cyan") + message + this.colorStop("cyan"));
-        }
+        this.display("white", "cyan", message, args);
+    }
+
+    public warning(message: string, args?: { [id: string]: any }): void {
+        this.display("yellow", "cyan", message, args);
     }
 
     public error(message: string, err?: any, args?: { [id: string]: any }): void {
-        if (args) {
-            console.log(`${this.colorStart("red")}ERROR - ${message}: ${this.arrayToReadable(args)}${this.colorStop("red")}`);
-        } else {
-            console.log(`${this.colorStart("red")}ERROR - ${message}${this.colorStop("red")}`);
-        }
+        this.display("red", "red", `ERROR: ${message ? message : ""}`, args);
         if (err) {
             console.log(this.colorStart("red") + ErrorHandler.format(err) + this.colorStop("red"));
         }
     }
 
-    public diagnostics(message: string, args?: { [id: string]: any }): void {
-        if (args) {
-            console.log(`${this.colorStart("yellow")}${message}: ${this.arrayToReadable(args)}${this.colorStop("yellow")}`);
+    private display(messageColor: string, argsColor: string, message: string, args?: { [id: string]: any }): void {
+        if (args && Object.keys(args).length > 0) {
+            if (message !== null && message !== undefined && message.length > 0) {
+                console.log(`${this.colorStart(messageColor)}${message}: ${this.colorStop(messageColor)}${this.colorStart(argsColor)}${this.arrayToReadable(args)}${this.colorStop(argsColor)}`);
+            } else {
+                console.log(`${this.colorStart(argsColor)}${this.arrayToReadable(args)}${this.colorStop(argsColor)}`);
+            }
         } else {
-            console.log(this.colorStart("yellow") + message + this.colorStop("yellow"));
+            if (message !== null && message !== undefined && message.length > 0) {
+                console.log(`${this.colorStart(messageColor)}${message}${this.colorStop(argsColor)}`);
+            } else {
+                console.log("");
+            }
         }
     }
 
@@ -91,13 +88,25 @@ export class Display implements IDisplay {
         return this._colorsOn ? `\u001b[${this._colors[color].stop}m` : "";
     }
 
-    private arrayToReadable(args?: { [id: string]: any}): string {
-        if (!args) {
-            return "";
-        } else {
+    private arrayToReadable(args?: { [id: string]: any }): string {
+        const retParts: string[] = [];
+        if (args) {
             const objKeys = Object.keys(args);
-            return (objKeys.length === 0 ? "" : (objKeys.length === 1 ? args[objKeys[0]] : JSON.stringify(args)));
+            if (objKeys.length === 1) {
+                retParts.push(args[objKeys[0]]);
+            } else {
+                objKeys.forEach(objKey => {
+                    retParts.push(os.EOL);
+                    retParts.push(`    ${objKey}: `);
+                    if (args[objKey]) {
+                        retParts.push(args[objKey].toString());
+                    } else {
+                        retParts.push("undefined");
+                    }
+                });
+            }
         }
+        return retParts.join("");
     }
 
     private calculateColors(process: NodeJS.Process, noColor: boolean): boolean {

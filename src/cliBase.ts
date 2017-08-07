@@ -1,23 +1,21 @@
 /**
  * Main entry point.
  */
-import { IDisplay } from "unitejs-framework/dist/interfaces/IDisplay";
 import { IFileSystem } from "unitejs-framework/dist/interfaces/IFileSystem";
 import { ILogger } from "unitejs-framework/dist/interfaces/ILogger";
+import { AggregateLogger } from "./aggregateLogger";
 import { CommandLineArgConstants } from "./commandLineArgConstants";
 import { CommandLineCommandConstants } from "./commandLineCommandConstants";
 import { CommandLineParser } from "./commandLineParser";
-import { Display } from "./display";
+import { DisplayLogger } from "./displayLogger";
+import { FileLogger } from "./fileLogger";
 import { FileSystem } from "./fileSystem";
-import { Logger } from "./logger";
 
 export abstract class CLIBase {
     private _appName: string;
-    private _defaultLog: string;
 
-    constructor(appName: string, defaultLog: string) {
+    constructor(appName: string) {
         this._appName = appName;
-        this._defaultLog = defaultLog;
     }
 
     public async run(process: NodeJS.Process): Promise<number> {
@@ -28,56 +26,59 @@ export abstract class CLIBase {
             const commandLineParser = new CommandLineParser();
             commandLineParser.parse(process.argv);
 
-            logger = new Logger(commandLineParser.getNumberArgument(CommandLineArgConstants.LOG_LEVEL),
-                                commandLineParser.getStringArgument(CommandLineArgConstants.LOG_FILE),
-                                this._defaultLog);
-            logger.info("Session Started");
+            const loggers = [];
 
-            const display: IDisplay = new Display(process, commandLineParser.hasArgument(CommandLineArgConstants.NO_COLOR));
+            loggers.push(new DisplayLogger(process, commandLineParser.hasArgument(CommandLineArgConstants.NO_COLOR)));
 
-            const fileSystem = new FileSystem();
+            const logFile = commandLineParser.getStringArgument(CommandLineArgConstants.LOG_FILE);
+            if (logFile !== undefined && logFile !== null && logFile.length > 0) {
+                loggers.push(new FileLogger(logFile));
+            }
 
-            ret = await this.handleCommand(logger, display, fileSystem, commandLineParser);
-
-            logger.info("Session Ended", { returnCode: ret });
+            logger = new AggregateLogger(loggers);
+            ret = await this.handleCommand(logger, new FileSystem(), commandLineParser);
         } catch (err) {
             ret = 1;
-            // tslint:disable-next-line:no-console
-            console.log("An unhandled error occurred: ", err);
             if (logger !== undefined) {
                 logger.error("Unhandled Exception", err);
-                logger.info("Session Ended", { returnCode: ret });
+            } else {
+                // tslint:disable-next-line:no-console
+                console.log("An unhandled error occurred: ", err);
             }
         }
 
         return ret;
     }
 
-    public abstract async handleCustomCommand(logger: ILogger, display: IDisplay, fileSystem: IFileSystem, commandLineParser: CommandLineParser): Promise<number>;
-    public abstract displayHelp(display: IDisplay): number;
+    public abstract async handleCustomCommand(logger: ILogger, fileSystem: IFileSystem, commandLineParser: CommandLineParser): Promise<number>;
+    public abstract displayHelp(logger: ILogger): number;
 
-    protected markdownTableToCli(display: IDisplay, row: string): void {
+    protected markdownTableToCli(logger: ILogger, row: string): void {
         if (row.length > 2) {
             row = row.substring(0, row.length - 1).trim().replace(/\|/g, "");
             if (row[2] === " ") {
-                display.info(`   ${row.substring(1)}`);
+                logger.info(`   ${row.substring(1)}`);
             } else {
-                display.info(` --${row.substring(1)}`);
+                logger.info(` --${row.substring(1)}`);
             }
         }
     }
 
-    private async handleCommand(logger: ILogger, display: IDisplay, fileSystem: IFileSystem, commandLineParser: CommandLineParser): Promise<number> {
+    private async handleCommand(logger: ILogger, fileSystem: IFileSystem, commandLineParser: CommandLineParser): Promise<number> {
         let ret: number = 0;
 
-        await this.displayBanner(logger, display, fileSystem, commandLineParser.getCommand() !== CommandLineCommandConstants.VERSION, commandLineParser);
+        await this.displayBanner(logger, fileSystem, commandLineParser.getCommand() !== CommandLineCommandConstants.VERSION, commandLineParser);
 
         const command = commandLineParser.getCommand();
-        const args = commandLineParser.getArguments([CommandLineArgConstants.NO_COLOR,
-        CommandLineArgConstants.LOG_FILE,
-        CommandLineArgConstants.LOG_LEVEL]);
-
-        logger.info("Command Line", { command, args });
+        const noColor = commandLineParser.hasArgument(CommandLineArgConstants.NO_COLOR);
+        if (noColor) {
+            const value = true;
+            logger.info(CommandLineArgConstants.NO_COLOR, { value });
+        }
+        if (commandLineParser.hasArgument(CommandLineArgConstants.LOG_FILE)) {
+            const value = commandLineParser.getArgument(CommandLineArgConstants.LOG_FILE);
+            logger.info(CommandLineArgConstants.LOG_FILE, { value } );
+        }
 
         switch (command) {
             case CommandLineCommandConstants.VERSION: {
@@ -86,20 +87,19 @@ export abstract class CLIBase {
             }
 
             case CommandLineCommandConstants.HELP: {
-                this.displayHelp(display);
+                this.displayHelp(logger);
                 break;
             }
 
             default: {
-                ret = await this.handleCustomCommand(logger, display, fileSystem, commandLineParser);
+                ret = await this.handleCustomCommand(logger, fileSystem, commandLineParser);
 
                 if (ret < 0) {
                     if (command === undefined) {
-                        display.error("No command specified");
+                        logger.error("No command specified try help");
                     } else {
-                        display.error(`Unknown command - ${command}`);
+                        logger.error(`Unknown command - ${command}`);
                     }
-                    display.info("Command line format: <command> [--arg1] [--arg2] ... [--argn]");
                 }
             }
         }
@@ -107,15 +107,14 @@ export abstract class CLIBase {
         return ret;
     }
 
-    private async displayBanner(logger: ILogger, display: IDisplay, fileSystem: IFileSystem, includeTitle: boolean, commandLineParser: CommandLineParser): Promise<void> {
+    private async displayBanner(logger: ILogger, fileSystem: IFileSystem, includeTitle: boolean, commandLineParser: CommandLineParser): Promise<void> {
         const packageJson = await fileSystem.fileReadJson<{ version: string}>(fileSystem.pathCombine(fileSystem.pathGetDirectory(commandLineParser.getScript()), "../"), "package.json");
         if (includeTitle) {
-            display.banner(`${this._appName} CLI`);
+            logger.banner(`${this._appName} CLI`);
         }
-        display.banner(packageJson && packageJson.version ? `v${packageJson.version}` : " Unknown Version");
-        logger.info(this._appName, { version: packageJson.version });
+        logger.banner(packageJson && packageJson.version ? `v${packageJson.version}` : " Unknown Version");
         if (includeTitle) {
-            display.banner("");
+            logger.banner("");
         }
     }
 }

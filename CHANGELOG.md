@@ -1,3 +1,6 @@
+# v0.7.1
+* Rationalised logging/display interfaces
+
 # v0.6.2
 * Bugfix
 
