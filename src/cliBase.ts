@@ -77,7 +77,7 @@ export abstract class CLIBase {
         }
         if (commandLineParser.hasArgument(CommandLineArgConstants.LOG_FILE)) {
             const value = commandLineParser.getArgument(CommandLineArgConstants.LOG_FILE);
-            logger.info(CommandLineArgConstants.LOG_FILE, { value } );
+            logger.info(CommandLineArgConstants.LOG_FILE, { value });
         }
 
         switch (command) {
