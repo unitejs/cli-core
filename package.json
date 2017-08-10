@@ -1,7 +1,9 @@
 {
   "name": "unitejs-cli-core",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "Common code for UniteJS CLI apps",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/unitejs/cli-core.git"
@@ -38,6 +40,6 @@
     "typescript": "^2.4.1"
   },
   "dependencies": {
-    "unitejs-framework": "^0.7.1"
+    "unitejs-framework": "^0.7.2"
   }
 }

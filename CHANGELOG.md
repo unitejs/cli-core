@@ -1,3 +1,6 @@
+# v0.7.2
+* Housekeeping
+
 # v0.7.1
 * Rationalised logging/display interfaces
 

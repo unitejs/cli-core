@@ -60,7 +60,7 @@ export class DisplayLogger implements ILogger {
     public error(message: string, err?: any, args?: { [id: string]: any }): void {
         this.display("red", "red", `ERROR: ${message ? message : ""}`, args);
         if (err) {
-            console.log(this.colorStart("red") + ErrorHandler.format(err) + this.colorStop("red"));
+            console.log(`${this.colorStart("red")}${ErrorHandler.format(err)}${this.colorStop("red")}`);
         }
     }
 
