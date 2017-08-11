@@ -9,9 +9,11 @@ import { ILogger } from "unitejs-framework/dist/interfaces/ILogger";
 export class DisplayLogger implements ILogger {
     private _colorsOn: boolean;
     private _colors: { [id: string]: { start: number; stop: number } };
+    private _logPrefix: string;
 
-    constructor(process: NodeJS.Process, noColor: boolean) {
+    constructor(process: NodeJS.Process, noColor: boolean, logPrefix?: string) {
         this._colorsOn = this.calculateColors(process, noColor);
+        this._logPrefix = logPrefix || "";
         this._colors = {
             reset: { start: 0, stop: 0 },
 
@@ -58,22 +60,28 @@ export class DisplayLogger implements ILogger {
     }
 
     public error(message: string, err?: any, args?: { [id: string]: any }): void {
-        this.display("red", "red", `ERROR: ${message ? message : ""}`, args);
+        if (message !== null && message !== undefined && message.length > 0) {
+            message = `ERROR: ${message}`;
+        } else {
+            message = "ERROR";
+        }
+        this.display("red", "red", message, args);
         if (err) {
-            console.log(`${this.colorStart("red")}${ErrorHandler.format(err)}${this.colorStop("red")}`);
+            console.log(`${this._logPrefix}${this.colorStart("red")}${ErrorHandler.format(err)}${this.colorStop("red")}`);
         }
     }
 
     private display(messageColor: string, argsColor: string, message: string, args?: { [id: string]: any }): void {
         if (args && Object.keys(args).length > 0) {
             if (message !== null && message !== undefined && message.length > 0) {
-                console.log(`${this.colorStart(messageColor)}${message}: ${this.colorStop(messageColor)}${this.colorStart(argsColor)}${this.arrayToReadable(args)}${this.colorStop(argsColor)}`);
+                console.log(`${this._logPrefix}` +
+                    `${this.colorStart(messageColor)}${message}: ${this.colorStop(messageColor)}${this.colorStart(argsColor)}${this.arrayToReadable(args)}${this.colorStop(argsColor)}`);
             } else {
-                console.log(`${this.colorStart(argsColor)}${this.arrayToReadable(args)}${this.colorStop(argsColor)}`);
+                console.log(`${this._logPrefix}${this.colorStart(argsColor)}${this.arrayToReadable(args).trim()}${this.colorStop(argsColor)}`);
             }
         } else {
             if (message !== null && message !== undefined && message.length > 0) {
-                console.log(`${this.colorStart(messageColor)}${message}${this.colorStop(argsColor)}`);
+                console.log(`${this._logPrefix}${this.colorStart(messageColor)}${message}${this.colorStop(argsColor)}`);
             } else {
                 console.log("");
             }
@@ -90,48 +98,73 @@ export class DisplayLogger implements ILogger {
 
     private arrayToReadable(args?: { [id: string]: any }): string {
         const retParts: string[] = [];
-        if (args) {
-            const objKeys = Object.keys(args);
-            if (objKeys.length === 1) {
-                retParts.push(args[objKeys[0]]);
+        const objKeys = Object.keys(args);
+        if (objKeys.length === 1) {
+            if (args[objKeys[0]]) {
+                retParts.push(args[objKeys[0]].toString());
             } else {
-                objKeys.forEach(objKey => {
-                    retParts.push(os.EOL);
-                    retParts.push(`    ${objKey}: `);
-                    if (args[objKey]) {
-                        retParts.push(args[objKey].toString());
-                    } else {
-                        retParts.push("undefined");
-                    }
-                });
+                retParts.push("undefined");
             }
+        } else {
+            objKeys.forEach(objKey => {
+                retParts.push(os.EOL);
+                retParts.push(`\t${objKey}: `);
+                if (args[objKey]) {
+                    retParts.push(args[objKey].toString());
+                } else {
+                    retParts.push("undefined");
+                }
+            });
         }
         return retParts.join("");
     }
 
     private calculateColors(process: NodeJS.Process, noColor: boolean): boolean {
+        // Logic copied from https://github.com/chalk/supports-color/blob/master/index.js
         if (noColor) {
             return false;
         }
 
-        if (process.stdout && !process.stdout.isTTY) {
-            return false;
-        }
+        if (process) {
+            if (process.stdout && !process.stdout.isTTY) {
+                return false;
+            }
 
-        if (process.platform === "win32") {
-            return true;
-        }
+            if (process.platform === "win32") {
+                return true;
+            }
 
-        if ("COLORTERM" in process.env) {
-            return true;
-        }
+            if (process.env) {
+                if ("CI" in process.env) {
+                    return ["TRAVIS", "CIRCLECI", "APPVEYOR", "GITLAB_CI"].some(sign => sign in process.env);
+                }
 
-        if (process.env.TERM === "dumb") {
-            return false;
-        }
+                if ("TEAMCITY_VERSION" in process.env) {
+                    return /^(9\.(0*[1-9]\d*)\.|\d{2,}\.)/.test(process.env.TEAMCITY_VERSION);
+                }
 
-        if (/^screen|^xterm|^vt100|color|ansi|cygwin|linux/i.test(process.env.TERM)) {
-            return true;
+                if ("TERM_PROGRAM" in process.env) {
+                    if (["iTerm.app", "Hyper", "Apple_Terminal"].indexOf(process.env.TERM_PROGRAM) >= 0) {
+                        return true;
+                    }
+                }
+
+                if (/^(screen|xterm)-256(?:color)?/.test(process.env.TERM)) {
+                    return true;
+                }
+
+                if (/^screen|^xterm|^vt100|color|ansi|cygwin|linux/i.test(process.env.TERM)) {
+                    return true;
+                }
+
+                if ("COLORTERM" in process.env) {
+                    return true;
+                }
+
+                if (process.env.TERM === "dumb") {
+                    return false;
+                }
+            }
         }
 
         return false;

@@ -20,30 +20,60 @@ export abstract class CLIBase {
 
     public async run(process: NodeJS.Process): Promise<number> {
         let logger: ILogger | undefined;
-        let ret: number;
+        let logPrefix = "";
+        let ret: number = 1;
 
         try {
             const commandLineParser = new CommandLineParser();
-            commandLineParser.parse(process.argv);
+            const badCommands = commandLineParser.parse(process ? process.argv : undefined);
 
             const loggers = [];
+            const fileSystem = new FileSystem();
 
-            loggers.push(new DisplayLogger(process, commandLineParser.hasArgument(CommandLineArgConstants.NO_COLOR)));
+            const noColor = commandLineParser.hasArgument(CommandLineArgConstants.NO_COLOR);
+            logPrefix = commandLineParser.getStringArgument(CommandLineArgConstants.LOG_PREFIX);
+            loggers.push(new DisplayLogger(process, noColor, logPrefix));
 
             const logFile = commandLineParser.getStringArgument(CommandLineArgConstants.LOG_FILE);
             if (logFile !== undefined && logFile !== null && logFile.length > 0) {
+                const dirName = fileSystem.pathGetDirectory(logFile);
+                const dirExists = await fileSystem.directoryExists(dirName);
+                if (!dirExists) {
+                    await fileSystem.directoryCreate(dirName);
+                }
                 loggers.push(new FileLogger(logFile));
             }
 
             logger = new AggregateLogger(loggers);
-            ret = await this.handleCommand(logger, new FileSystem(), commandLineParser);
+
+            if (commandLineParser.getInterpreter() === undefined) {
+                logger.error("The command line contained no interpreter");
+            } else if (commandLineParser.getScript() === undefined) {
+                logger.error("The command line contained no script");
+            } else if (badCommands.length > 0) {
+                logger.error("The following arguments are badly formed", badCommands);
+            } else {
+                const isVersionCommand = commandLineParser.getCommand() === CommandLineCommandConstants.VERSION;
+                await this.displayBanner(logger, fileSystem, !isVersionCommand, commandLineParser);
+
+                if (!isVersionCommand) {
+                    if (noColor) {
+                        const value = true;
+                        logger.info(CommandLineArgConstants.NO_COLOR, { value });
+                    }
+                    if (logFile !== undefined && logFile !== null && logFile.length > 0) {
+                        logger.info(CommandLineArgConstants.LOG_FILE, { logFile });
+                    }
+                }
+
+                ret = await this.handleCommand(logger, fileSystem, commandLineParser);
+            }
         } catch (err) {
-            ret = 1;
             if (logger !== undefined) {
                 logger.error("Unhandled Exception", err);
             } else {
                 // tslint:disable-next-line:no-console
-                console.log("An unhandled error occurred: ", err);
+                console.log(`${logPrefix}An unhandled error occurred: `, err);
             }
         }
 
@@ -54,7 +84,7 @@ export abstract class CLIBase {
     public abstract displayHelp(logger: ILogger): number;
 
     protected markdownTableToCli(logger: ILogger, row: string): void {
-        if (row.length > 2) {
+        if (row !== undefined && row !== null && row.length > 2) {
             row = row.substring(0, row.length - 1).trim().replace(/\|/g, "");
             if (row[2] === " ") {
                 logger.info(`   ${row.substring(1)}`);
@@ -67,18 +97,7 @@ export abstract class CLIBase {
     private async handleCommand(logger: ILogger, fileSystem: IFileSystem, commandLineParser: CommandLineParser): Promise<number> {
         let ret: number = 0;
 
-        await this.displayBanner(logger, fileSystem, commandLineParser.getCommand() !== CommandLineCommandConstants.VERSION, commandLineParser);
-
         const command = commandLineParser.getCommand();
-        const noColor = commandLineParser.hasArgument(CommandLineArgConstants.NO_COLOR);
-        if (noColor) {
-            const value = true;
-            logger.info(CommandLineArgConstants.NO_COLOR, { value });
-        }
-        if (commandLineParser.hasArgument(CommandLineArgConstants.LOG_FILE)) {
-            const value = commandLineParser.getArgument(CommandLineArgConstants.LOG_FILE);
-            logger.info(CommandLineArgConstants.LOG_FILE, { value });
-        }
 
         switch (command) {
             case CommandLineCommandConstants.VERSION: {
@@ -100,6 +119,7 @@ export abstract class CLIBase {
                     } else {
                         logger.error(`Unknown command - ${command}`);
                     }
+                    ret = 1;
                 }
             }
         }
@@ -108,11 +128,16 @@ export abstract class CLIBase {
     }
 
     private async displayBanner(logger: ILogger, fileSystem: IFileSystem, includeTitle: boolean, commandLineParser: CommandLineParser): Promise<void> {
-        const packageJson = await fileSystem.fileReadJson<{ version: string}>(fileSystem.pathCombine(fileSystem.pathGetDirectory(commandLineParser.getScript()), "../"), "package.json");
         if (includeTitle) {
             logger.banner(`${this._appName} CLI`);
         }
-        logger.banner(packageJson && packageJson.version ? `v${packageJson.version}` : " Unknown Version");
+
+        const packageJsonDir = fileSystem.pathCombine(fileSystem.pathGetDirectory(commandLineParser.getScript()), "../");
+        const packageJsonExists = await fileSystem.fileExists(packageJsonDir, "package.json");
+        if (packageJsonExists) {
+            const packageJson = await fileSystem.fileReadJson<{ version: string }>(fileSystem.pathCombine(fileSystem.pathGetDirectory(commandLineParser.getScript()), "../"), "package.json");
+            logger.banner(`v${packageJson.version}`);
+        }
         if (includeTitle) {
             logger.banner("");
         }

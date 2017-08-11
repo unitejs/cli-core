@@ -1,5 +1,5 @@
 /**
- * Display class
+ * Aggregate Logger class
  */
 import { ILogger } from "unitejs-framework/dist/interfaces/ILogger";
 export declare class AggregateLogger implements ILogger {

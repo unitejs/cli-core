@@ -1,9 +1,10 @@
 /**
- * Logger class
+ * File Logger class
  */
 import * as fs from "fs";
 import * as os from "os";
 import { ErrorHandler } from "unitejs-framework/dist/helpers/errorHandler";
+import { JsonHelper } from "unitejs-framework/dist/helpers/jsonHelper";
 import { ILogger } from "unitejs-framework/dist/interfaces/ILogger";
 
 export class FileLogger implements ILogger {
@@ -17,16 +18,16 @@ export class FileLogger implements ILogger {
             }
         } catch (err) {
             // tslint:disable-next-line:no-console
-            console.error(`Error Deleting Log File: ${err}`);
+            console.log(`Error Deleting Log File: ${ErrorHandler.format(err)}`);
         }
     }
 
-    public banner(message: string, error?: any, args?: { [id: string]: any }): void {
+    public banner(message: string, args?: { [id: string]: any }): void {
         this.write("===  ", message, args);
     }
 
     public info(message: string, args?: { [id: string]: any }): void {
-        this.write("LOG: ", message, args);
+        this.write("INFO: ", message, args);
     }
 
     public warning(message: string, args?: { [id: string]: any }): void {
@@ -50,19 +51,7 @@ export class FileLogger implements ILogger {
             }
             if (args) {
                 Object.keys(args).forEach((argKey) => {
-                    const cache: any[] = [];
-
-                    const objectJson = JSON.stringify(args[argKey], (key, value) => {
-                        if (typeof value === "object" && value !== null && value !== undefined) {
-                            if (cache.indexOf(value) !== -1) {
-                                // circular reference found, discard key
-                                return;
-                            } else {
-                                cache.push(value);
-                            }
-                        }
-                        return value;
-                    });
+                    const objectJson = JsonHelper.stringify(args[argKey]);
 
                     output += `\t\t${argKey}: ${objectJson}${os.EOL}`;
                 });
@@ -71,7 +60,7 @@ export class FileLogger implements ILogger {
             fs.appendFileSync(this._logFile, output);
         } catch (err) {
             // tslint:disable-next-line:no-console
-            console.error(`Error Logging: ${err}`);
+            console.log(`Error Logging: ${ErrorHandler.format(err)}`);
         }
     }
 }

@@ -121,7 +121,7 @@ gulp.task("unit-transpile", () => {
 });
 
 gulp.task("unit-pre-coverage", () => {
-    return gulp.src(`${distFolder}**/*.js`)
+    return gulp.src(`${distFolder}**/!(index|I*).js`)
         .pipe(istanbul({"includeUntested": true}))
         .pipe(istanbul.hookRequire());
 });
@@ -143,6 +143,7 @@ gulp.task("unit-remap", () => {
     return gulp.src(`${unitReportsFolder}coverage-final.json`)
         .pipe(remapIstanbul({
             "reports": {
+                "text": "",
                 "json": `${unitReportsFolder}coverage.json`,
                 "html": `${unitReportsFolder}html-report`,
                 "lcovonly": `${unitReportsFolder}lcov.info`

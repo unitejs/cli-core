@@ -1,9 +1,8 @@
 /**
- * Display class
+ * Aggregate Logger class
  */
 import { ILogger } from "unitejs-framework/dist/interfaces/ILogger";
 
-// tslint:disable:no-console
 export class AggregateLogger implements ILogger {
     private _loggers: ILogger[];
 

@@ -2,7 +2,7 @@ import { ILogger } from "unitejs-framework/dist/interfaces/ILogger";
 export declare class FileLogger implements ILogger {
     private _logFile;
     constructor(logFile: string | undefined | null);
-    banner(message: string, error?: any, args?: {
+    banner(message: string, args?: {
         [id: string]: any;
     }): void;
     info(message: string, args?: {

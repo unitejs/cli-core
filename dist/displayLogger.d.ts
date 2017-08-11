@@ -3,7 +3,8 @@ import { ILogger } from "unitejs-framework/dist/interfaces/ILogger";
 export declare class DisplayLogger implements ILogger {
     private _colorsOn;
     private _colors;
-    constructor(process: NodeJS.Process, noColor: boolean);
+    private _logPrefix;
+    constructor(process: NodeJS.Process, noColor: boolean, logPrefix?: string);
     banner(message: string, args?: {
         [id: string]: any;
     }): void;

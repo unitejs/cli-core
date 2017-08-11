@@ -7,7 +7,8 @@ export class CommandLineParser {
     private _command: string;
     private _arguments: { [id: string]: string | null };
 
-    public parse(argv: string[]): void {
+    public parse(argv: string[]): string[] {
+        const badParams: string[] = [];
         if (argv) {
             if (argv.length > 0) {
                 this._interpreter = argv[0];
@@ -23,11 +24,10 @@ export class CommandLineParser {
                 }
             }
             if (argv.length > argStart) {
-                this._arguments = {};
-
                 for (let i = argStart; i < argv.length; i++) {
                     let arg = argv[i];
                     if (arg.startsWith("--")) {
+                        this._arguments = this._arguments || {};
                         arg = arg.substring(2);
                         const eqIndex: number = arg.indexOf("=");
                         if (eqIndex === -1) {
@@ -35,10 +35,17 @@ export class CommandLineParser {
                         } else {
                             this._arguments[arg.substring(0, eqIndex)] = arg.substring(eqIndex + 1);
                         }
+                    } else {
+                        badParams.push(arg);
                     }
                 }
             }
         }
+        return badParams;
+    }
+
+    public getInterpreter(): string {
+        return this._interpreter;
     }
 
     public getScript(): string {
@@ -49,57 +56,44 @@ export class CommandLineParser {
         return this._command;
     }
 
-    public getArguments(exclude?: string[]): { [id: string]: string | null } {
-        if (this._arguments && exclude && exclude.length > 0) {
-            const newArgs: { [id: string]: string | null } = {};
+    public getStringArgument(argumentName: string): string | undefined | null {
+        if (this.hasArgument(argumentName)) {
+            const arg = this._arguments[argumentName];
+            delete this._arguments[argumentName];
 
-            Object.keys(this._arguments)
-                .filter((argKey) => exclude.indexOf(argKey) === -1)
-                .forEach((argKey) => {
-                    newArgs[argKey] = this._arguments[argKey];
-                });
-
-            return newArgs;
+            if (arg === null) {
+                return arg;
+            } else {
+                if (arg.length >= 2 && arg.startsWith("\"") && arg.endsWith("\"")) {
+                    return arg.substring(1, arg.length - 1).trim();
+                } else if (arg.length >= 2 && arg.startsWith("'") && arg.endsWith("'")) {
+                    return arg.substring(1, arg.length - 1).trim();
+                } else {
+                    return arg.trim();
+                }
+            }
         } else {
-            return this._arguments;
+            return undefined;
         }
-    }
-
-    public getArgument(argumentName: string): string | null | undefined {
-        return this._arguments ? this._arguments[argumentName] : undefined;
     }
 
     public getNumberArgument(argumentName: string): number | undefined | null {
-        const arg = this.getArgument(argumentName);
+        if (this.hasArgument(argumentName)) {
+            const arg = this._arguments[argumentName];
 
-        if (arg === undefined) {
-            return undefined;
-        } else if (arg === null) {
-            return null;
-        } else {
-            const val = parseInt(arg, 10);
-
-            return isNaN(val) ? undefined : val;
-        }
-    }
-
-    public getStringArgument(argumentName: string): string | undefined | null {
-        const arg = this.getArgument(argumentName);
-
-        if (arg === undefined) {
-            return undefined;
-        } else if (arg === null) {
-            return null;
-        } else {
-            if (arg.length >= 2 && arg.startsWith("\"") && arg.endsWith("\"")) {
-                return arg.substring(1, arg.length - 2).trim();
+            // Regex from here https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseFloat
+            if (/^(\-|\+)?([0-9]+(\.[0-9]+)?)$/.test(arg)) {
+                delete this._arguments[argumentName];
+                return parseFloat(arg);
             } else {
-                return arg.trim();
+                return undefined;
             }
+        } else {
+            return undefined;
         }
     }
 
     public hasArgument(argumentName: string): boolean {
-        return this._arguments && argumentName in this._arguments;
+        return this._arguments !== undefined && (argumentName in this._arguments);
     }
 }
