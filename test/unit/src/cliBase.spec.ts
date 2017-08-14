@@ -50,7 +50,7 @@ describe("CLIBase", () => {
         logMessages = [];
         console.log = (message?: any, ...optionalParams: any[]) => {
             if (message) {
-                if (message.indexOf("@@@") < 0 && !message.startsWith("ERROR: ")) {
+                if (message.indexOf("@@@") < 0 && message.indexOf("ERROR: ") < 0) {
                     originalConsoleLog(message, ...optionalParams);
                 } else {
                     logMessages.push(message);
@@ -65,8 +65,8 @@ describe("CLIBase", () => {
     afterEach(async () => {
         sandbox.restore();
         console.log = originalConsoleLog;
-        const fs = new FileSystem();
-        await fs.directoryDelete("test/unit/temp/");
+        // const fs = new FileSystem();
+        // await fs.directoryDelete("test/unit/temp/");
     });
 
     it("can be created", () => {
@@ -77,146 +77,116 @@ describe("CLIBase", () => {
     describe("run", () => {
         it("can be called with no process", async () => {
             const obj = new TestCLI();
-            return obj.run(undefined)
-                .then((result) => {
-                    Chai.expect(result).to.equal(1);
-                });
+            const result = await obj.run(undefined);
+            Chai.expect(result).to.equal(1);
         });
 
         it("can be called with process and no argv", async () => {
             const obj = new TestCLI();
-            return obj.run(<NodeJS.Process>{})
-                .then((result) => {
-                    Chai.expect(result).to.equal(1);
-                    Chai.expect(logMessages[0]).to.contain("no interpreter");
-                });
+            const result = await obj.run(<NodeJS.Process>{});
+            Chai.expect(result).to.equal(1);
+            Chai.expect(logMessages[0]).to.contain("no interpreter");
         });
 
         it("can be called with process and argv interpreter", async () => {
             const obj = new TestCLI();
-            return obj.run(<NodeJS.Process>{ argv: [ "node" ]})
-                .then((result) => {
-                    Chai.expect(result).to.equal(1);
-                    Chai.expect(logMessages[0]).to.contain("no script");
-                });
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node" ]});
+            Chai.expect(result).to.equal(1);
+            Chai.expect(logMessages[0]).to.contain("no script");
         });
 
-        it("can be called with process and argv interpreter, script and bad command", async () => {
+        it("can be called with process and argv interpreter, misplaced script and bad command", async () => {
             const obj = new TestCLI();
-            return obj.run(<NodeJS.Process>{ argv: [ "node", "script", "help", "--logPrefix=@@@", "-noColor" ]})
-                .then((result) => {
-                    Chai.expect(result).to.equal(1);
-                    Chai.expect(logMessages[0]).to.contain("badly formed");
-                });
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "script.js", "help", "--logPrefix=@@@", "-noColor" ]});
+            Chai.expect(result).to.equal(1);
+            Chai.expect(logMessages[0]).to.contain("badly formed");
         });
 
         it("can be called with process and argv interpreter, misplaced script and not existing log file", async () => {
             const obj = new TestCLI();
-            return obj.run(<NodeJS.Process>{ argv: [ "node", "script", "help", "--logPrefix=@@@", "--logFile=test/unit/temp/test.txt" ]})
-                .then((result) => {
-                    Chai.expect(result).to.equal(0);
-                    Chai.expect(logMessages[0]).to.contain("MyApp CLI");
-                    Chai.expect(logMessages.length).to.equal(5);
-                });
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "script.js", "help", "--logPrefix=@@@", "--logFile=test/unit/temp/test.txt" ]});
+            Chai.expect(result).to.equal(0);
+            Chai.expect(logMessages[0]).to.contain("MyApp CLI");
+            Chai.expect(logMessages.length).to.equal(5);
         });
 
         it("can be called with process and argv interpreter, misplaced script and existing log folder", async () => {
             const obj = new TestCLI();
             const fs = new FileSystem();
             await fs.directoryCreate("test/unit/temp/");
-            return obj.run(<NodeJS.Process>{ argv: [ "node", "script", "help", "--logPrefix=@@@", "--logFile=test/unit/temp/test.txt" ]})
-                .then((result) => {
-                    Chai.expect(result).to.equal(0);
-                    Chai.expect(logMessages[0]).to.contain("MyApp CLI");
-                    Chai.expect(logMessages.length).to.equal(5);
-                });
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "script.js", "help", "--logPrefix=@@@", "--logFile=test/unit/temp/test.txt" ]});
+            Chai.expect(result).to.equal(0);
+            Chai.expect(logMessages[0]).to.contain("MyApp CLI");
+            Chai.expect(logMessages.length).to.equal(5);
         });
 
         it("can be called with help command", async () => {
             const obj = new TestCLI();
-            return obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script", "help", "--logPrefix=@@@" ]})
-                .then((result) => {
-                    Chai.expect(result).to.equal(0);
-                    Chai.expect(logMessages[0]).to.contain("MyApp CLI");
-                    Chai.expect(logMessages[1]).to.contain("v");
-                    Chai.expect(logMessages.length).to.equal(5);
-                });
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "help", "--logPrefix=@@@" ]});
+            Chai.expect(result).to.equal(0);
+            Chai.expect(logMessages[0]).to.contain("MyApp CLI");
+            Chai.expect(logMessages[1]).to.contain("v");
+            Chai.expect(logMessages.length).to.equal(5);
         });
 
         it("can be called with help command with no color", async () => {
             const obj = new TestCLI();
-            return obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script", "help", "--noColor", "--logPrefix=@@@" ]})
-                .then((result) => {
-                    Chai.expect(result).to.equal(0);
-                    Chai.expect(logMessages[0]).to.contain("MyApp CLI");
-                    Chai.expect(logMessages[1]).to.contain("v");
-                    Chai.expect(logMessages.length).to.equal(6);
-                });
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "help", "--noColor", "--logPrefix=@@@" ]});
+            Chai.expect(result).to.equal(0);
+            Chai.expect(logMessages[0]).to.contain("MyApp CLI");
+            Chai.expect(logMessages[1]).to.contain("v");
+            Chai.expect(logMessages.length).to.equal(6);
         });
 
         it("can be called with version command", async () => {
             const obj = new TestCLI();
-            return obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script", "version", "--logPrefix=@@@" ]})
-                .then((result) => {
-                    Chai.expect(result).to.equal(0);
-                    Chai.expect(logMessages[0]).to.contain("v");
-                    Chai.expect(logMessages.length).to.equal(1);
-                });
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "version", "--logPrefix=@@@" ]});
+            Chai.expect(result).to.equal(0);
+            Chai.expect(logMessages[0]).to.contain("v");
+            Chai.expect(logMessages.length).to.equal(1);
         });
 
         it("can be called with version command with no color", async () => {
             const obj = new TestCLI();
-            return obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script", "version", "--logPrefix=@@@", "--noColor" ]})
-                .then((result) => {
-                    Chai.expect(result).to.equal(0);
-                    Chai.expect(logMessages[0]).to.contain("v");
-                    Chai.expect(logMessages.length).to.equal(1);
-                });
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "version", "--logPrefix=@@@", "--noColor" ]});
+            Chai.expect(result).to.equal(0);
+            Chai.expect(logMessages[0]).to.contain("v");
+            Chai.expect(logMessages.length).to.equal(1);
         });
 
         it("can be called with exception command", async () => {
             const obj = new TestCLI();
-            return obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script", "exception", "--logPrefix=@@@" ]})
-                .then((result) => {
-                    Chai.expect(result).to.equal(1);
-                    Chai.expect(logMessages[logMessages.length - 2]).to.contain("Unhandled");
-                    Chai.expect(logMessages[logMessages.length - 1]).to.contain("kaboom");
-                });
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "exception", "--logPrefix=@@@" ]});
+            Chai.expect(result).to.equal(1);
+            Chai.expect(logMessages[logMessages.length - 2]).to.contain("Unhandled");
+            Chai.expect(logMessages[logMessages.length - 1]).to.contain("kaboom");
         });
 
         it("can be called with missing command", async () => {
             const obj = new TestCLI();
-            return obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script", "--logPrefix=@@@" ]})
-                .then((result) => {
-                    Chai.expect(result).to.equal(1);
-                    Chai.expect(logMessages[logMessages.length - 1]).to.contain("No command");
-                });
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "--logPrefix=@@@" ]});
+            Chai.expect(result).to.equal(1);
+            Chai.expect(logMessages[logMessages.length - 1]).to.contain("No command");
         });
 
         it("can be called with unknown command", async () => {
             const obj = new TestCLI();
-            return obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script", "unknown", "--logPrefix=@@@" ]})
-                .then((result) => {
-                    Chai.expect(result).to.equal(1);
-                    Chai.expect(logMessages[logMessages.length - 1]).to.contain("unknown");
-                });
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "unknown", "--logPrefix=@@@" ]});
+            Chai.expect(result).to.equal(1);
+            Chai.expect(logMessages[logMessages.length - 1]).to.contain("unknown");
         });
 
         it("can be called with failed command", async () => {
             const obj = new TestCLI();
-            return obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script", "fail", "--logPrefix=@@@" ]})
-                .then((result) => {
-                    Chai.expect(result).to.equal(1);
-                    Chai.expect(logMessages[logMessages.length - 1]).to.contain("fail");
-                });
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "fail", "--logPrefix=@@@" ]});
+            Chai.expect(result).to.equal(1);
+            Chai.expect(logMessages[logMessages.length - 1]).to.contain("fail");
         });
 
         it("can throw exception before logging is created", async () => {
             const obj = new TestCLI();
-            return obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script", "fail", "--logPrefix=@@@", "--logFile=?*?*?*/test.txt" ]})
-                .then((result) => {
-                    Chai.expect(result).to.equal(1);
-                });
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "fail", "--logPrefix=@@@", "--logFile=?*?*?*/test.txt" ]});
+            Chai.expect(result).to.equal(1);
         });
     });
 });

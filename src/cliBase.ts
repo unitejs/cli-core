@@ -20,6 +20,7 @@ export abstract class CLIBase {
 
     public async run(process: NodeJS.Process): Promise<number> {
         let logger: ILogger | undefined;
+        let fileLogger: FileLogger | undefined;
         let logPrefix = "";
         let ret: number = 1;
 
@@ -36,12 +37,9 @@ export abstract class CLIBase {
 
             const logFile = commandLineParser.getStringArgument(CommandLineArgConstants.LOG_FILE);
             if (logFile !== undefined && logFile !== null && logFile.length > 0) {
-                const dirName = fileSystem.pathGetDirectory(logFile);
-                const dirExists = await fileSystem.directoryExists(dirName);
-                if (!dirExists) {
-                    await fileSystem.directoryCreate(dirName);
-                }
-                loggers.push(new FileLogger(logFile));
+                fileLogger = new FileLogger(logFile, fileSystem);
+                await fileLogger.initialise();
+                loggers.push(fileLogger);
             }
 
             logger = new AggregateLogger(loggers);
@@ -73,8 +71,12 @@ export abstract class CLIBase {
                 logger.error("Unhandled Exception", err);
             } else {
                 // tslint:disable-next-line:no-console
-                console.log(`${logPrefix}An unhandled error occurred: `, err);
+                console.log(`${logPrefix}An error occurred: `, err);
             }
+        }
+
+        if (fileLogger !== undefined) {
+            await fileLogger.closedown();
         }
 
         return ret;

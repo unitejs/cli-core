@@ -1,7 +1,14 @@
+import { IFileSystem } from "unitejs-framework/dist/interfaces/IFileSystem";
 import { ILogger } from "unitejs-framework/dist/interfaces/ILogger";
 export declare class FileLogger implements ILogger {
+    private _fileSystem;
+    private _logFolder;
     private _logFile;
-    constructor(logFile: string | undefined | null);
+    private _buffer;
+    private _flushIntervalId;
+    constructor(logFile: string, fileSystem: IFileSystem);
+    initialise(): Promise<void>;
+    closedown(): Promise<void>;
     banner(message: string, args?: {
         [id: string]: any;
     }): void;
@@ -15,4 +22,6 @@ export declare class FileLogger implements ILogger {
         [id: string]: any;
     }): void;
     private write(type, message, args?);
+    private flushData();
+    private stopInterval();
 }

@@ -1,25 +1,49 @@
 /**
  * File Logger class
  */
-import * as fs from "fs";
 import * as os from "os";
 import { ErrorHandler } from "unitejs-framework/dist/helpers/errorHandler";
 import { JsonHelper } from "unitejs-framework/dist/helpers/jsonHelper";
+import { IFileSystem } from "unitejs-framework/dist/interfaces/IFileSystem";
 import { ILogger } from "unitejs-framework/dist/interfaces/ILogger";
 
 export class FileLogger implements ILogger {
+    private _fileSystem: IFileSystem;
+    private _logFolder: string;
     private _logFile: string;
+    private _buffer: string;
+    private _flushIntervalId: NodeJS.Timer;
 
-    constructor(logFile: string | undefined | null) {
-        this._logFile = logFile;
+    constructor(logFile: string, fileSystem: IFileSystem) {
+        this._fileSystem = fileSystem;
+        this._logFolder = this._fileSystem.pathGetDirectory(logFile);
+        this._logFile = this._fileSystem.pathGetFilename(logFile);
+        this._buffer = "";
+    }
+
+    public async initialise(): Promise<void> {
         try {
-            if (fs.existsSync(this._logFile)) {
-                fs.unlinkSync(this._logFile);
+            const dirExists = await this._fileSystem.directoryExists(this._logFolder);
+            if (!dirExists) {
+                await this._fileSystem.directoryCreate(this._logFolder);
             }
+
+            const fileExists = await this._fileSystem.fileExists(this._logFolder, this._logFile);
+
+            if (fileExists) {
+                await this._fileSystem.fileDelete(this._logFolder, this._logFile);
+            }
+
+            this._flushIntervalId = setInterval(async () => this.flushData(), 200);
         } catch (err) {
-            // tslint:disable-next-line:no-console
-            console.log(`Error Deleting Log File: ${ErrorHandler.format(err)}`);
+            throw new Error(`Initialising Log File: ${this._logFile}: ${err.toString()}`);
         }
+    }
+
+    public async closedown(): Promise<void> {
+        this.stopInterval();
+        await this.flushData();
+        return Promise.resolve();
     }
 
     public banner(message: string, args?: { [id: string]: any }): void {
@@ -42,25 +66,41 @@ export class FileLogger implements ILogger {
     }
 
     private write(type: string, message: string, args?: { [id: string]: any }): void {
-        try {
-            let output = "";
-            if (message !== null && message !== undefined && message.length > 0) {
-                output += `${type}${message}${os.EOL}`;
-            } else {
-                output += os.EOL;
-            }
-            if (args) {
-                Object.keys(args).forEach((argKey) => {
-                    const objectJson = JsonHelper.stringify(args[argKey]);
+        let output = "";
+        if (message !== null && message !== undefined && message.length > 0) {
+            output += `${type}${message}${os.EOL}`;
+        } else {
+            output += os.EOL;
+        }
+        if (args) {
+            Object.keys(args).forEach((argKey) => {
+                const objectJson = JsonHelper.stringify(args[argKey]);
 
-                    output += `\t\t${argKey}: ${objectJson}${os.EOL}`;
-                });
-            }
+                output += `\t\t${argKey}: ${objectJson}${os.EOL}`;
+            });
+        }
 
-            fs.appendFileSync(this._logFile, output);
-        } catch (err) {
-            // tslint:disable-next-line:no-console
-            console.log(`Error Logging: ${ErrorHandler.format(err)}`);
+        this._buffer += output;
+    }
+
+    private async flushData(): Promise<void> {
+        if (this._buffer.length > 0) {
+            try {
+                const localBuffer = this._buffer;
+                this._buffer = "";
+                await this._fileSystem.fileWriteText(this._logFolder, this._logFile, localBuffer, true);
+            } catch (err) {
+                this.stopInterval();
+                // tslint:disable-next-line:no-console
+                console.log(`ERROR: Logging To File '${this._logFile}': ${ErrorHandler.format(err)}`);
+            }
+        }
+    }
+
+    private stopInterval(): void {
+        if (this._flushIntervalId !== undefined) {
+            clearInterval(this._flushIntervalId);
+            this._flushIntervalId = undefined;
         }
     }
 }

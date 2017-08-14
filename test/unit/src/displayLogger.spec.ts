@@ -17,7 +17,7 @@ describe("DisplayLogger", () => {
         processStub = <NodeJS.Process>{ platform: "win32" };
         originalConsoleLog = console.log;
         console.log = (message?: any, ...optionalParams: any[]) => {
-            if (message && message.indexOf("@@@") < 0) {
+            if (message && message.indexOf("@@@") < 0 && !message.startsWith("ERROR: ")) {
                 originalConsoleLog(message, ...optionalParams);
             }
         };
@@ -232,7 +232,7 @@ describe("DisplayLogger", () => {
         });
 
         it("can have no color if stdout is not TTY", () => {
-            const obj = new DisplayLogger(<NodeJS.Process>{ stdout: { } }, false);
+            const obj = new DisplayLogger(<NodeJS.Process>{ stdout: {} }, false);
             obj.banner("@@@message");
             Chai.expect(spiedConsoleLogMethod.args[0][0]).to.equal("@@@message");
         });
@@ -355,7 +355,7 @@ describe("DisplayLogger", () => {
         });
 
         it("can have no color if environment is undefined", () => {
-            const process: any = { };
+            const process: any = {};
             const obj = new DisplayLogger(process, false);
             obj.banner("@@@message");
             Chai.expect(spiedConsoleLogMethod.args[0][0]).to.equal("@@@message");
