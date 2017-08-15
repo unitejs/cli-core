@@ -93,6 +93,42 @@ export class CommandLineParser {
         }
     }
 
+    public getBooleanArgument(argumentName: string): boolean | undefined | null {
+        if (this.hasArgument(argumentName)) {
+            const arg = this._arguments[argumentName];
+
+            if (arg !== null && arg !== undefined && arg.length > 0) {
+                if (arg === "true") {
+                    delete this._arguments[argumentName];
+                    return true;
+                } else if (arg === "false") {
+                    delete this._arguments[argumentName];
+                    return false;
+                } else {
+                    return undefined;
+                }
+            } else {
+                delete this._arguments[argumentName];
+                return true;
+            }
+        } else {
+            return undefined;
+        }
+    }
+
+    public getRemaining(): string[] {
+        const remaining: string[] = [];
+
+        if (this._arguments) {
+            const keys = Object.keys(this._arguments);
+            keys.forEach(key => {
+                remaining.push(`--${key}=${this._arguments[key]}`);
+            });
+        }
+
+        return remaining;
+    }
+
     public hasArgument(argumentName: string): boolean {
         return this._arguments !== undefined && (argumentName in this._arguments);
     }

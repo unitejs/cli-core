@@ -193,4 +193,74 @@ describe("CommandLineParser", () => {
             Chai.expect(obj.hasArgument("logLevel")).to.be.equal(false);
         });
     });
+
+    describe("getBooleanArgument", () => {
+        it("can fail getting an unknown argument", () => {
+            const obj = new CommandLineParser();
+            Chai.expect(obj.parse(["node", "myscript", "acommand"])).to.be.deep.equal([]);
+            Chai.expect(obj.hasArgument("logEnabled")).to.be.equal(false);
+            Chai.expect(obj.getBooleanArgument("logEnabled")).to.be.equal(undefined);
+        });
+
+        it("can succeed getting an empty argument", () => {
+            const obj = new CommandLineParser();
+            Chai.expect(obj.parse(["node", "myscript", "acommand", "--logEnabled"])).to.be.deep.equal([]);
+            Chai.expect(obj.hasArgument("logEnabled")).to.be.equal(true);
+            Chai.expect(obj.getBooleanArgument("logEnabled")).to.be.equal(true);
+            Chai.expect(obj.hasArgument("logEnabled")).to.be.equal(false);
+        });
+
+        it("can succeed getting a zero length argument", () => {
+            const obj = new CommandLineParser();
+            Chai.expect(obj.parse(["node", "myscript", "acommand", "--logEnabled="])).to.be.deep.equal([]);
+            Chai.expect(obj.hasArgument("logEnabled")).to.be.equal(true);
+            Chai.expect(obj.getBooleanArgument("logEnabled")).to.be.equal(true);
+            Chai.expect(obj.hasArgument("logEnabled")).to.be.equal(false);
+        });
+
+        it("can fail getting a non true/false argument", () => {
+            const obj = new CommandLineParser();
+            Chai.expect(obj.parse(["node", "myscript", "acommand", "--logEnabled=bah"])).to.be.deep.equal([]);
+            Chai.expect(obj.hasArgument("logEnabled")).to.be.equal(true);
+            Chai.expect(obj.getBooleanArgument("logEnabled")).to.be.equal(undefined);
+            Chai.expect(obj.hasArgument("logEnabled")).to.be.equal(true);
+        });
+
+        it("can succeed getting a true argument", () => {
+            const obj = new CommandLineParser();
+            Chai.expect(obj.parse(["node", "myscript", "acommand", "--logEnabled=true"])).to.be.deep.equal([]);
+            Chai.expect(obj.hasArgument("logEnabled")).to.be.equal(true);
+            Chai.expect(obj.getBooleanArgument("logEnabled")).to.be.equal(true);
+            Chai.expect(obj.hasArgument("logEnabled")).to.be.equal(false);
+        });
+
+        it("can succeed getting a false argument", () => {
+            const obj = new CommandLineParser();
+            Chai.expect(obj.parse(["node", "myscript", "acommand", "--logEnabled=false"])).to.be.deep.equal([]);
+            Chai.expect(obj.hasArgument("logEnabled")).to.be.equal(true);
+            Chai.expect(obj.getBooleanArgument("logEnabled")).to.be.equal(false);
+            Chai.expect(obj.hasArgument("logEnabled")).to.be.equal(false);
+        });
+    });
+
+    describe("getRemaining", () => {
+        it("can get non remaining if no args", () => {
+            const obj = new CommandLineParser();
+            Chai.expect(obj.parse(["node", "myscript"])).to.be.deep.equal([]);
+            Chai.expect(obj.getRemaining().length).to.be.equal(0);
+        });
+
+        it("can get non remaining if all consumed", () => {
+            const obj = new CommandLineParser();
+            Chai.expect(obj.parse(["node", "myscript", "--myarg"])).to.be.deep.equal([]);
+            Chai.expect(obj.getStringArgument("myarg")).to.be.equal(null);
+            Chai.expect(obj.getRemaining().length).to.be.equal(0);
+        });
+
+        it("can get remaining if not consumed", () => {
+            const obj = new CommandLineParser();
+            Chai.expect(obj.parse(["node", "myscript", "--myarg"])).to.be.deep.equal([]);
+            Chai.expect(obj.getRemaining().length).to.be.equal(1);
+        });
+    });
 });

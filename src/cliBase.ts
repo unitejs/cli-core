@@ -3,6 +3,7 @@
  */
 import { IFileSystem } from "unitejs-framework/dist/interfaces/IFileSystem";
 import { ILogger } from "unitejs-framework/dist/interfaces/ILogger";
+import { DefaultLogger } from "unitejs-framework/dist/loggers/defaultLogger";
 import { AggregateLogger } from "./aggregateLogger";
 import { CommandLineArgConstants } from "./commandLineArgConstants";
 import { CommandLineCommandConstants } from "./commandLineCommandConstants";
@@ -21,7 +22,6 @@ export abstract class CLIBase {
     public async run(process: NodeJS.Process): Promise<number> {
         let logger: ILogger | undefined;
         let fileLogger: FileLogger | undefined;
-        let logPrefix = "";
         let ret: number = 1;
 
         try {
@@ -31,9 +31,8 @@ export abstract class CLIBase {
             const loggers = [];
             const fileSystem = new FileSystem();
 
-            const noColor = commandLineParser.hasArgument(CommandLineArgConstants.NO_COLOR);
-            logPrefix = commandLineParser.getStringArgument(CommandLineArgConstants.LOG_PREFIX);
-            loggers.push(new DisplayLogger(process, noColor, logPrefix));
+            const noColor = commandLineParser.getBooleanArgument(CommandLineArgConstants.NO_COLOR);
+            loggers.push(new DisplayLogger(process, noColor));
 
             const logFile = commandLineParser.getStringArgument(CommandLineArgConstants.LOG_FILE);
             if (logFile !== undefined && logFile !== null && logFile.length > 0) {
@@ -70,8 +69,7 @@ export abstract class CLIBase {
             if (logger !== undefined) {
                 logger.error("Unhandled Exception", err);
             } else {
-                // tslint:disable-next-line:no-console
-                console.log(`${logPrefix}An error occurred: `, err);
+                DefaultLogger.log("An error occurred: ", err);
             }
         }
 
@@ -84,6 +82,16 @@ export abstract class CLIBase {
 
     public abstract async handleCustomCommand(logger: ILogger, fileSystem: IFileSystem, commandLineParser: CommandLineParser): Promise<number>;
     public abstract displayHelp(logger: ILogger): number;
+
+    public checkRemaining(logger: ILogger, commandLineParser: CommandLineParser): number {
+        const remaining = commandLineParser.getRemaining();
+        if (remaining.length > 0) {
+            logger.error("Unrecognized arguments on the command line", undefined, { remaining });
+            return 1;
+        } else {
+            return 0;
+        }
+    }
 
     protected markdownTableToCli(logger: ILogger, row: string): void {
         if (row !== undefined && row !== null && row.length > 2) {
@@ -103,12 +111,18 @@ export abstract class CLIBase {
 
         switch (command) {
             case CommandLineCommandConstants.VERSION: {
+                ret = this.checkRemaining(logger, commandLineParser);
+
                 // Nothing else to display
                 break;
             }
 
             case CommandLineCommandConstants.HELP: {
-                this.displayHelp(logger);
+                ret = this.checkRemaining(logger, commandLineParser);
+
+                if (ret === 0) {
+                    this.displayHelp(logger);
+                }
                 break;
             }
 
@@ -134,10 +148,10 @@ export abstract class CLIBase {
             logger.banner(`${this._appName} CLI`);
         }
 
-        const packageJsonDir = fileSystem.pathCombine(fileSystem.pathGetDirectory(commandLineParser.getScript()), "../");
+        const packageJsonDir = fileSystem.pathCombine(fileSystem.pathGetDirectory(`${commandLineParser.getScript()}.js`), "../");
         const packageJsonExists = await fileSystem.fileExists(packageJsonDir, "package.json");
         if (packageJsonExists) {
-            const packageJson = await fileSystem.fileReadJson<{ version: string }>(fileSystem.pathCombine(fileSystem.pathGetDirectory(commandLineParser.getScript()), "../"), "package.json");
+            const packageJson = await fileSystem.fileReadJson<{ version: string }>(packageJsonDir, "package.json");
             logger.banner(`v${packageJson.version}`);
         }
         if (includeTitle) {

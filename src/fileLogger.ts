@@ -6,6 +6,7 @@ import { ErrorHandler } from "unitejs-framework/dist/helpers/errorHandler";
 import { JsonHelper } from "unitejs-framework/dist/helpers/jsonHelper";
 import { IFileSystem } from "unitejs-framework/dist/interfaces/IFileSystem";
 import { ILogger } from "unitejs-framework/dist/interfaces/ILogger";
+import { DefaultLogger } from "unitejs-framework/dist/loggers/defaultLogger";
 
 export class FileLogger implements ILogger {
     private _fileSystem: IFileSystem;
@@ -91,8 +92,7 @@ export class FileLogger implements ILogger {
                 await this._fileSystem.fileWriteText(this._logFolder, this._logFile, localBuffer, true);
             } catch (err) {
                 this.stopInterval();
-                // tslint:disable-next-line:no-console
-                console.log(`ERROR: Logging To File '${this._logFile}': ${ErrorHandler.format(err)}`);
+                DefaultLogger.log(`ERROR: Logging To File '${this._logFile}': ${ErrorHandler.format(err)}`);
             }
         }
     }

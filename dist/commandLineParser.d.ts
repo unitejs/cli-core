@@ -12,5 +12,7 @@ export declare class CommandLineParser {
     getCommand(): string;
     getStringArgument(argumentName: string): string | undefined | null;
     getNumberArgument(argumentName: string): number | undefined | null;
+    getBooleanArgument(argumentName: string): boolean | undefined | null;
+    getRemaining(): string[];
     hasArgument(argumentName: string): boolean;
 }

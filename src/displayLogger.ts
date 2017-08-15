@@ -4,16 +4,14 @@
 import * as os from "os";
 import { ErrorHandler } from "unitejs-framework/dist/helpers/errorHandler";
 import { ILogger } from "unitejs-framework/dist/interfaces/ILogger";
+import { DefaultLogger } from "unitejs-framework/dist/loggers/defaultLogger";
 
-// tslint:disable:no-console
 export class DisplayLogger implements ILogger {
     private _colorsOn: boolean;
     private _colors: { [id: string]: { start: number; stop: number } };
-    private _logPrefix: string;
 
-    constructor(process: NodeJS.Process, noColor: boolean, logPrefix?: string) {
+    constructor(process: NodeJS.Process, noColor: boolean) {
         this._colorsOn = this.calculateColors(process, noColor);
-        this._logPrefix = logPrefix || "";
         this._colors = {
             reset: { start: 0, stop: 0 },
 
@@ -67,23 +65,22 @@ export class DisplayLogger implements ILogger {
         }
         this.display("red", "red", message, args);
         if (err) {
-            console.log(`${this._logPrefix}${this.colorStart("red")}${ErrorHandler.format(err)}${this.colorStop("red")}`);
+            DefaultLogger.log(`${this.colorStart("red")}${ErrorHandler.format(err)}${this.colorStop("red")}`);
         }
     }
 
     private display(messageColor: string, argsColor: string, message: string, args?: { [id: string]: any }): void {
         if (args && Object.keys(args).length > 0) {
             if (message !== null && message !== undefined && message.length > 0) {
-                console.log(`${this._logPrefix}` +
-                    `${this.colorStart(messageColor)}${message}: ${this.colorStop(messageColor)}${this.colorStart(argsColor)}${this.arrayToReadable(args)}${this.colorStop(argsColor)}`);
+                DefaultLogger.log(`${this.colorStart(messageColor)}${message}: ${this.colorStop(messageColor)}${this.colorStart(argsColor)}${this.arrayToReadable(args)}${this.colorStop(argsColor)}`);
             } else {
-                console.log(`${this._logPrefix}${this.colorStart(argsColor)}${this.arrayToReadable(args).trim()}${this.colorStop(argsColor)}`);
+                DefaultLogger.log(`${this.colorStart(argsColor)}${this.arrayToReadable(args).trim()}${this.colorStop(argsColor)}`);
             }
         } else {
             if (message !== null && message !== undefined && message.length > 0) {
-                console.log(`${this._logPrefix}${this.colorStart(messageColor)}${message}${this.colorStop(argsColor)}`);
+                DefaultLogger.log(`${this.colorStart(messageColor)}${message}${this.colorStop(argsColor)}`);
             } else {
-                console.log("");
+                DefaultLogger.log("");
             }
         }
     }

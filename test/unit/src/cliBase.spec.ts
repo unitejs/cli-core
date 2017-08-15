@@ -5,6 +5,7 @@ import * as Chai from "chai";
 import * as Sinon from "sinon";
 import { IFileSystem } from "unitejs-framework/dist/interfaces/IFileSystem";
 import { ILogger } from "unitejs-framework/dist/interfaces/ILogger";
+import { DefaultLogger } from "unitejs-framework/dist/loggers/defaultLogger";
 import { CLIBase } from "../../../dist/cliBase";
 import { CommandLineParser } from "../../../dist/commandLineParser";
 import { FileSystem } from "../../../dist/fileSystem";
@@ -40,33 +41,33 @@ class TestCLI extends CLIBase {
 
 describe("CLIBase", () => {
     let sandbox: Sinon.SinonSandbox;
-    let originalConsoleLog: (message?: any, ...optionalParams: any[]) => void;
-    let spiedConsoleLogMethod: Sinon.SinonSpy;
+    let defaultLoggerStub: Sinon.SinonStub;
+    let loggerStub: ILogger;
+    let loggerErrorSpy: Sinon.SinonSpy;
     let logMessages: string[];
 
     beforeEach(() => {
         sandbox = Sinon.sandbox.create();
-        originalConsoleLog = console.log;
+        defaultLoggerStub = sandbox.stub(DefaultLogger, "log");
+
+        loggerStub = <ILogger>{};
+        loggerStub.banner = () => { };
+        loggerStub.info = () => { };
+        loggerStub.warning = () => { };
+        loggerStub.error = () => { };
+
+        loggerErrorSpy = sandbox.spy(loggerStub, "error");
+
         logMessages = [];
-        console.log = (message?: any, ...optionalParams: any[]) => {
-            if (message) {
-                if (message.indexOf("@@@") < 0 && message.indexOf("ERROR: ") < 0) {
-                    originalConsoleLog(message, ...optionalParams);
-                } else {
-                    logMessages.push(message);
-                }
-            } else {
-                logMessages.push(message);
-            }
-        };
-        spiedConsoleLogMethod = sandbox.spy(console, "log");
+        defaultLoggerStub.callsFake((message) => {
+            logMessages.push(message);
+        });
     });
 
     afterEach(async () => {
         sandbox.restore();
-        console.log = originalConsoleLog;
-        // const fs = new FileSystem();
-        // await fs.directoryDelete("test/unit/temp/");
+        const fs = new FileSystem();
+        await fs.directoryDelete("test/unit/temp/");
     });
 
     it("can be created", () => {
@@ -97,14 +98,14 @@ describe("CLIBase", () => {
 
         it("can be called with process and argv interpreter, misplaced script and bad command", async () => {
             const obj = new TestCLI();
-            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "script.js", "help", "--logPrefix=@@@", "-noColor" ]});
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "script.js", "help", "-noColor" ]});
             Chai.expect(result).to.equal(1);
             Chai.expect(logMessages[0]).to.contain("badly formed");
         });
 
         it("can be called with process and argv interpreter, misplaced script and not existing log file", async () => {
             const obj = new TestCLI();
-            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "script.js", "help", "--logPrefix=@@@", "--logFile=test/unit/temp/test.txt" ]});
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "script.js", "help", "--logFile=test/unit/temp/test.txt" ]});
             Chai.expect(result).to.equal(0);
             Chai.expect(logMessages[0]).to.contain("MyApp CLI");
             Chai.expect(logMessages.length).to.equal(5);
@@ -114,7 +115,7 @@ describe("CLIBase", () => {
             const obj = new TestCLI();
             const fs = new FileSystem();
             await fs.directoryCreate("test/unit/temp/");
-            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "script.js", "help", "--logPrefix=@@@", "--logFile=test/unit/temp/test.txt" ]});
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "script.js", "help", "--logFile=test/unit/temp/test.txt" ]});
             Chai.expect(result).to.equal(0);
             Chai.expect(logMessages[0]).to.contain("MyApp CLI");
             Chai.expect(logMessages.length).to.equal(5);
@@ -122,16 +123,22 @@ describe("CLIBase", () => {
 
         it("can be called with help command", async () => {
             const obj = new TestCLI();
-            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "help", "--logPrefix=@@@" ]});
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "help" ]});
             Chai.expect(result).to.equal(0);
             Chai.expect(logMessages[0]).to.contain("MyApp CLI");
             Chai.expect(logMessages[1]).to.contain("v");
             Chai.expect(logMessages.length).to.equal(5);
         });
 
+        it("can be called with help command with remaining args", async () => {
+            const obj = new TestCLI();
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "help", "--someArg" ]});
+            Chai.expect(result).to.equal(1);
+        });
+
         it("can be called with help command with no color", async () => {
             const obj = new TestCLI();
-            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "help", "--noColor", "--logPrefix=@@@" ]});
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "help", "--noColor" ]});
             Chai.expect(result).to.equal(0);
             Chai.expect(logMessages[0]).to.contain("MyApp CLI");
             Chai.expect(logMessages[1]).to.contain("v");
@@ -140,7 +147,7 @@ describe("CLIBase", () => {
 
         it("can be called with version command", async () => {
             const obj = new TestCLI();
-            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "version", "--logPrefix=@@@" ]});
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "version" ]});
             Chai.expect(result).to.equal(0);
             Chai.expect(logMessages[0]).to.contain("v");
             Chai.expect(logMessages.length).to.equal(1);
@@ -148,7 +155,7 @@ describe("CLIBase", () => {
 
         it("can be called with version command with no color", async () => {
             const obj = new TestCLI();
-            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "version", "--logPrefix=@@@", "--noColor" ]});
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "version", "--noColor" ]});
             Chai.expect(result).to.equal(0);
             Chai.expect(logMessages[0]).to.contain("v");
             Chai.expect(logMessages.length).to.equal(1);
@@ -156,7 +163,7 @@ describe("CLIBase", () => {
 
         it("can be called with exception command", async () => {
             const obj = new TestCLI();
-            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "exception", "--logPrefix=@@@" ]});
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "exception" ]});
             Chai.expect(result).to.equal(1);
             Chai.expect(logMessages[logMessages.length - 2]).to.contain("Unhandled");
             Chai.expect(logMessages[logMessages.length - 1]).to.contain("kaboom");
@@ -164,29 +171,40 @@ describe("CLIBase", () => {
 
         it("can be called with missing command", async () => {
             const obj = new TestCLI();
-            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "--logPrefix=@@@" ]});
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js" ]});
             Chai.expect(result).to.equal(1);
             Chai.expect(logMessages[logMessages.length - 1]).to.contain("No command");
         });
 
         it("can be called with unknown command", async () => {
             const obj = new TestCLI();
-            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "unknown", "--logPrefix=@@@" ]});
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "unknown" ]});
             Chai.expect(result).to.equal(1);
             Chai.expect(logMessages[logMessages.length - 1]).to.contain("unknown");
         });
 
         it("can be called with failed command", async () => {
             const obj = new TestCLI();
-            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "fail", "--logPrefix=@@@" ]});
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "fail" ]});
             Chai.expect(result).to.equal(1);
             Chai.expect(logMessages[logMessages.length - 1]).to.contain("fail");
         });
 
         it("can throw exception before logging is created", async () => {
             const obj = new TestCLI();
-            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "fail", "--logPrefix=@@@", "--logFile=?*?*?*/test.txt" ]});
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "fail", "--logFile=?*?*?*/test.txt" ]});
             Chai.expect(result).to.equal(1);
+        });
+    });
+
+    describe("run", () => {
+        it("can fail when args are remaining", () => {
+            const obj = new TestCLI();
+            const commandLineParser = new CommandLineParser();
+            commandLineParser.parse(["node", "script", "--arg1=fred"]);
+            const result = obj.checkRemaining(loggerStub, commandLineParser);
+            Chai.expect(result).to.equal(1);
+            Chai.expect(loggerErrorSpy.args[0][0]).to.contain("Unrecognized arguments");
         });
     });
 });
