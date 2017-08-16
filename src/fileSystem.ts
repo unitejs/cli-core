@@ -136,7 +136,7 @@ export class FileSystem implements IFileSystem {
                     }
                 }
 
-                await util.promisify(fs.rmdir)(directoryName);
+                return util.promisify(fs.rmdir)(directoryName);
             }
         }
     }
@@ -167,7 +167,7 @@ export class FileSystem implements IFileSystem {
             content !== undefined && content !== null) {
             directoryName = this.cleanupSeparators(directoryName);
 
-            await util.promisify(append ? fs.appendFile : fs.writeFile)(path.join(directoryName, fileName), content);
+            return util.promisify(append ? fs.appendFile : fs.writeFile)(path.join(directoryName, fileName), content);
         }
     }
 
@@ -177,7 +177,7 @@ export class FileSystem implements IFileSystem {
             lines !== undefined && lines !== null) {
             directoryName = this.cleanupSeparators(directoryName);
 
-            await util.promisify(append ? fs.appendFile : fs.writeFile)(path.join(directoryName, fileName), lines.join(os.EOL) + os.EOL);
+            return util.promisify(append ? fs.appendFile : fs.writeFile)(path.join(directoryName, fileName), lines.join(os.EOL) + os.EOL);
         }
     }
 
@@ -187,7 +187,7 @@ export class FileSystem implements IFileSystem {
             data !== undefined && data !== null) {
             directoryName = this.cleanupSeparators(directoryName);
 
-            await util.promisify(append ? fs.appendFile : fs.writeFile)(path.join(directoryName, fileName), data);
+            return util.promisify(append ? fs.appendFile : fs.writeFile)(path.join(directoryName, fileName), data);
         }
     }
 
@@ -197,7 +197,7 @@ export class FileSystem implements IFileSystem {
             object !== undefined && object !== null) {
             directoryName = this.cleanupSeparators(directoryName);
 
-            await util.promisify(fs.writeFile)(path.join(directoryName, fileName), JsonHelper.stringify(object, "\t"));
+            return util.promisify(fs.writeFile)(path.join(directoryName, fileName), JsonHelper.stringify(object, "\t"));
         }
     }
 
@@ -232,7 +232,7 @@ export class FileSystem implements IFileSystem {
         } else {
             directoryName = this.cleanupSeparators(directoryName);
 
-            return await util.promisify(fs.readFile)(path.join(directoryName, fileName));
+            return util.promisify(fs.readFile)(path.join(directoryName, fileName));
         }
     }
 
@@ -255,7 +255,7 @@ export class FileSystem implements IFileSystem {
         } else {
             directoryName = this.cleanupSeparators(directoryName);
 
-            await util.promisify(fs.unlink)(path.join(directoryName, fileName));
+            return util.promisify(fs.unlink)(path.join(directoryName, fileName));
         }
     }
 
