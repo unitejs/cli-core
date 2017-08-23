@@ -1,4 +1,5 @@
-# v0.7.4
+# v0.8.0
+* Finalise API
 * Unit Tests and Fixes
 
 # v0.7.3
