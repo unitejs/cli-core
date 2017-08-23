@@ -125,12 +125,12 @@ describe("FileSystem", () => {
 
         it("can be called with root path", () => {
             const obj = new FileSystem();
-            Chai.expect(obj.pathAbsolute("\\a\\b")).to.equal(`${path.resolve(`${path.sep}${path.sep}`)}a${path.sep}b`);
+            Chai.expect(obj.pathAbsolute("/a/b")).to.equal(`${path.resolve(`${path.sep}${path.sep}`)}a${path.sep}b`);
         });
 
         it("can be called with relative path", () => {
             const obj = new FileSystem();
-            Chai.expect(obj.pathAbsolute(".\\a\\b")).to.equal(`${path.resolve(".")}${path.sep}a${path.sep}b`);
+            Chai.expect(obj.pathAbsolute("./a/b")).to.equal(`${path.resolve(".")}${path.sep}a${path.sep}b`);
         });
 
     });
@@ -143,17 +143,17 @@ describe("FileSystem", () => {
 
         it("can be called with no trailing slash", () => {
             const obj = new FileSystem();
-            Chai.expect(obj.pathGetDirectory("\\a\\b")).to.equal(`${path.sep}a${path.sep}b${path.sep}`);
+            Chai.expect(obj.pathGetDirectory("/a/b")).to.equal(`${path.sep}a${path.sep}b${path.sep}`);
         });
 
         it("can be called with trailing slash", () => {
             const obj = new FileSystem();
-            Chai.expect(obj.pathGetDirectory("\\a\\b\\")).to.equal(`${path.sep}a${path.sep}b${path.sep}`);
+            Chai.expect(obj.pathGetDirectory("/a/b/")).to.equal(`${path.sep}a${path.sep}b${path.sep}`);
         });
 
         it("can be called with a file name", () => {
             const obj = new FileSystem();
-            Chai.expect(obj.pathGetDirectory("\\a\\b\\temp.txt")).to.equal(`${path.sep}a${path.sep}b${path.sep}`);
+            Chai.expect(obj.pathGetDirectory("/a/b/temp.txt")).to.equal(`${path.sep}a${path.sep}b${path.sep}`);
         });
     });
 
@@ -165,22 +165,17 @@ describe("FileSystem", () => {
 
         it("can be called with no trailing slash", () => {
             const obj = new FileSystem();
-            Chai.expect(obj.pathGetFilename("\\a\\b")).to.equal("b");
+            Chai.expect(obj.pathGetFilename("/a/b")).to.equal("b");
         });
 
-        it("can be called with trailing windows slash", () => {
+        it("can be called with trailing slash", () => {
             const obj = new FileSystem();
-            Chai.expect(obj.pathGetFilename("\\a\\b\\")).to.equal(undefined);
-        });
-
-        it("can be called with trailing unix slash", () => {
-            const obj = new FileSystem();
-            Chai.expect(obj.pathGetFilename("//a//b//")).to.equal(undefined);
+            Chai.expect(obj.pathGetFilename("/a/b/")).to.equal(undefined);
         });
 
         it("can be called with a file name", () => {
             const obj = new FileSystem();
-            Chai.expect(obj.pathGetFilename("\\a\\b\\temp.txt")).to.equal("temp.txt");
+            Chai.expect(obj.pathGetFilename("/a/b/temp.txt")).to.equal("temp.txt");
         });
     });
 
