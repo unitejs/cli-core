@@ -26,9 +26,9 @@
     "node": ">=8.0.0"
   },
   "devDependencies": {
-    "@types/chai": "^4.0.3",
-    "@types/mocha": "^2.2.41",
-    "@types/npm": "^2.0.28",
+    "@types/chai": "^4.0.4",
+    "@types/mocha": "^2.2.42",
+    "@types/npm": "^2.0.29",
     "@types/sinon": "^2.3.3",
     "chai": "^4.1.1",
     "coveralls": "^2.13.1",
@@ -40,7 +40,7 @@
     "gulp-replace": "^0.6.1",
     "gulp-sourcemaps": "^2.6.1",
     "gulp-tslint": "^8.1.2",
-    "gulp-typescript": "^3.2.1",
+    "gulp-typescript": "^3.2.2",
     "merge2": "^1.1.0",
     "minimist": "^1.2.0",
     "remap-istanbul": "^0.9.5",

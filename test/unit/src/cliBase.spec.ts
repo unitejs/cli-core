@@ -192,8 +192,10 @@ describe("CLIBase", () => {
 
         it("can throw exception before logging is created", async () => {
             const obj = new TestCLI();
-            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "fail", "--logFile=?*?*?*/test.txt" ]});
+            sandbox.stub(CommandLineParser.prototype, "parse").throws("error");
+            const result = await obj.run(undefined);
             Chai.expect(result).to.equal(1);
+            Chai.expect(logMessages[logMessages.length - 1]).to.contain("error occurred");
         });
     });
 
