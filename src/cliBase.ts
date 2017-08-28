@@ -95,9 +95,9 @@ export abstract class CLIBase {
 
     protected markdownTableToCli(logger: ILogger, row: string): void {
         if (row !== undefined && row !== null && row.length > 2) {
-            row = row.substring(0, row.length - 1).trim().replace(/\|/g, "");
-            if (row[2] === " ") {
-                logger.info(`   ${row.substring(1)}`);
+            const newRow = row.substring(0, row.length - 1).trim().replace(/\|/g, "");
+            if (newRow[2] === " ") {
+                logger.info(`   ${newRow.substring(1)}`);
             } else {
                 logger.info(` --${row.substring(1)}`);
             }

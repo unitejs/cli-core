@@ -58,12 +58,13 @@ export class DisplayLogger implements ILogger {
     }
 
     public error(message: string, err?: any, args?: { [id: string]: any }): void {
+        let finalMessage;
         if (message !== null && message !== undefined && message.length > 0) {
-            message = `ERROR: ${message}`;
+            finalMessage = `ERROR: ${message}`;
         } else {
-            message = "ERROR";
+            finalMessage = "ERROR";
         }
-        this.display("red", "red", message, args);
+        this.display("red", "red", finalMessage, args);
         if (err) {
             DefaultLogger.log(`${this.colorStart("red")}${ErrorHandler.format(err)}${this.colorStop("red")}`);
         }
