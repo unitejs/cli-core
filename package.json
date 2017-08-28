@@ -1,6 +1,6 @@
 {
   "name": "unitejs-cli-core",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Common code for UniteJS CLI apps",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -46,11 +46,11 @@
     "remap-istanbul": "^0.9.5",
     "run-sequence": "^2.0.0",
     "sinon": "^3.2.1",
-    "tslint": "^5.6.0",
+    "tslint": "^5.7.0",
     "tslint-microsoft-contrib": "^5.0.1",
     "typescript": "^2.5.1"
   },
   "dependencies": {
-    "unitejs-framework": "^0.8.0"
+    "unitejs-framework": "^0.8.1"
   }
 }

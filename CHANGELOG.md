@@ -1,3 +1,6 @@
+# v0.8.1
+* Fixed bug logging bool false
+
 # v0.8.0
 * Finalise API
 * Unit Tests and Fixes

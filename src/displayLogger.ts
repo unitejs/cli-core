@@ -97,7 +97,7 @@ export class DisplayLogger implements ILogger {
         const retParts: string[] = [];
         const objKeys = Object.keys(args);
         if (objKeys.length === 1) {
-            if (args[objKeys[0]]) {
+            if (args[objKeys[0]] !== undefined && args[objKeys[0]] !== null) {
                 retParts.push(args[objKeys[0]].toString());
             } else {
                 retParts.push("undefined");
@@ -106,7 +106,7 @@ export class DisplayLogger implements ILogger {
             objKeys.forEach(objKey => {
                 retParts.push(os.EOL);
                 retParts.push(`\t${objKey}: `);
-                if (args[objKey]) {
+                if (args[objKey] !== undefined && args[objKey]  !== null) {
                     retParts.push(args[objKey].toString());
                 } else {
                     retParts.push("undefined");
