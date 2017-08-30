@@ -272,6 +272,66 @@ describe("FileSystem", () => {
         });
     });
 
+    describe("directoryGetFiles", () => {
+        it("can be called with undefined", async () => {
+            const obj = new FileSystem();
+            const ret = await obj.directoryGetFiles(undefined);
+            Chai.expect(ret).to.deep.equal([]);
+        });
+
+        it("can be called with non existing directory", async () => {
+            const obj = new FileSystem();
+            const ret = await obj.directoryGetFiles("./test/unit/temp/");
+            Chai.expect(ret).to.deep.equal([]);
+        });
+
+        it("can be called with existing directory with files", async () => {
+            const obj = new FileSystem();
+            await obj.directoryCreate("./test/unit/temp/");
+            await obj.fileWriteText("./test/unit/temp/", "temp.txt", "blah");
+            const ret = await obj.directoryGetFiles("./test/unit/temp/");
+            Chai.expect(ret).to.deep.equal(["temp.txt"]);
+        });
+
+        it("can be called with existing directory with files and folder", async () => {
+            const obj = new FileSystem();
+            await obj.directoryCreate("./test/unit/temp/foo");
+            await obj.fileWriteText("./test/unit/temp/", "temp.txt", "blah");
+            const ret = await obj.directoryGetFiles("./test/unit/temp/");
+            Chai.expect(ret).to.deep.equal(["temp.txt"]);
+        });
+    });
+
+    describe("directoryGetFolders", () => {
+        it("can be called with undefined", async () => {
+            const obj = new FileSystem();
+            const ret = await obj.directoryGetFolders(undefined);
+            Chai.expect(ret).to.deep.equal([]);
+        });
+
+        it("can be called with non existing directory", async () => {
+            const obj = new FileSystem();
+            const ret = await obj.directoryGetFolders("./test/unit/temp/");
+            Chai.expect(ret).to.deep.equal([]);
+        });
+
+        it("can be called with existing directory with files", async () => {
+            const obj = new FileSystem();
+            await obj.directoryCreate("./test/unit/temp/");
+            await obj.fileWriteText("./test/unit/temp/", "temp.txt", "blah");
+            const ret = await obj.directoryGetFolders("./test/unit/temp/");
+            Chai.expect(ret).to.deep.equal([]);
+        });
+
+        it("can be called with existing directory with files and folder", async () => {
+            const obj = new FileSystem();
+            await obj.directoryCreate("./test/unit/temp/foo");
+            await obj.fileWriteText("./test/unit/temp/", "temp.txt", "blah");
+            const ret = await obj.directoryGetFolders("./test/unit/temp/");
+            Chai.expect(ret).to.deep.equal(["foo"]);
+        });
+    });
+
     describe("fileExists", () => {
         it("can be called with undefined", async () => {
             const obj = new FileSystem();

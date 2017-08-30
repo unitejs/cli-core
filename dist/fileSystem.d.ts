@@ -10,6 +10,8 @@ export declare class FileSystem implements IFileSystem {
     directoryExists(directoryName: string): Promise<boolean>;
     directoryCreate(directoryName: string): Promise<void>;
     directoryDelete(directoryName: string): Promise<void>;
+    directoryGetFiles(directoryName: string): Promise<string[]>;
+    directoryGetFolders(directoryName: string): Promise<string[]>;
     fileExists(directoryName: string, fileName: string): Promise<boolean>;
     fileWriteText(directoryName: string, fileName: string, content: string, append?: boolean): Promise<void>;
     fileWriteLines(directoryName: string, fileName: string, lines: string[], append?: boolean): Promise<void>;
