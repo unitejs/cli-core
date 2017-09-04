@@ -19,10 +19,14 @@ export abstract class CLIBase {
         this._appName = appName;
     }
 
+    public async initialise(logger: ILogger, fileSystem: IFileSystem): Promise<number> {
+        return 0;
+    }
+
     public async run(process: NodeJS.Process): Promise<number> {
         let logger: ILogger | undefined;
         let fileLogger: FileLogger | undefined;
-        let ret: number = 1;
+        let ret: number;
 
         try {
             const commandLineParser = new CommandLineParser();
@@ -45,27 +49,35 @@ export abstract class CLIBase {
 
             if (commandLineParser.getInterpreter() === undefined) {
                 logger.error("The command line contained no interpreter");
+                ret = 1;
             } else if (commandLineParser.getScript() === undefined) {
                 logger.error("The command line contained no script");
+                ret = 1;
             } else if (badCommands.length > 0) {
                 logger.error("The following arguments are badly formed", badCommands);
+                ret = 1;
             } else {
-                const isVersionCommand = commandLineParser.getCommand() === CommandLineCommandConstants.VERSION;
-                await this.displayBanner(logger, fileSystem, !isVersionCommand, commandLineParser);
+                ret = await this.initialise(logger, fileSystem);
 
-                if (!isVersionCommand) {
-                    if (noColor) {
-                        const value = true;
-                        logger.info(CommandLineArgConstants.NO_COLOR, { value });
+                if (ret === 0) {
+                    const isVersionCommand = commandLineParser.getCommand() === CommandLineCommandConstants.VERSION;
+                    await this.displayBanner(logger, fileSystem, !isVersionCommand, commandLineParser);
+
+                    if (!isVersionCommand) {
+                        if (noColor) {
+                            const value = true;
+                            logger.info(CommandLineArgConstants.NO_COLOR, { value });
+                        }
+                        if (logFile !== undefined && logFile !== null && logFile.length > 0) {
+                            logger.info(CommandLineArgConstants.LOG_FILE, { logFile });
+                        }
                     }
-                    if (logFile !== undefined && logFile !== null && logFile.length > 0) {
-                        logger.info(CommandLineArgConstants.LOG_FILE, { logFile });
-                    }
+
+                    ret = await this.handleCommand(logger, fileSystem, commandLineParser);
                 }
-
-                ret = await this.handleCommand(logger, fileSystem, commandLineParser);
             }
         } catch (err) {
+            ret = 1;
             if (logger !== undefined) {
                 logger.error("Unhandled Exception", err);
             } else {
@@ -102,6 +114,9 @@ export abstract class CLIBase {
                 logger.info(` --${row.substring(1)}`);
             }
         }
+    }
+
+    protected displayAdditionalVersion(logger: ILogger): void {
     }
 
     private async handleCommand(logger: ILogger, fileSystem: IFileSystem, commandLineParser: CommandLineParser): Promise<number> {
@@ -152,8 +167,9 @@ export abstract class CLIBase {
         const packageJsonExists = await fileSystem.fileExists(packageJsonDir, "package.json");
         if (packageJsonExists) {
             const packageJson = await fileSystem.fileReadJson<{ version: string }>(packageJsonDir, "package.json");
-            logger.banner(`v${packageJson.version}`);
+            logger.banner(`CLI v${packageJson.version}`);
         }
+        this.displayAdditionalVersion(logger);
         if (includeTitle) {
             logger.banner("");
         }

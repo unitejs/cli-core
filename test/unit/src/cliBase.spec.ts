@@ -11,9 +11,16 @@ import { CommandLineParser } from "../../../dist/commandLineParser";
 import { FileSystem } from "../../../dist/fileSystem";
 
 class TestCLI extends CLIBase {
+    public initialiseFail: boolean;
+
     constructor() {
         super("MyApp");
     }
+
+    public async initialise(logger: ILogger, fileSystem: IFileSystem) : Promise<number> {
+        return this.initialiseFail ? 1 : super.initialise(logger, fileSystem);
+    }
+
     public async handleCustomCommand(logger: ILogger, fileSystem: IFileSystem, commandLineParser: CommandLineParser): Promise<number> {
         let ret: number = -1;
 
@@ -159,6 +166,13 @@ describe("CLIBase", () => {
             Chai.expect(result).to.equal(0);
             Chai.expect(logMessages[0]).to.contain("v");
             Chai.expect(logMessages.length).to.equal(1);
+        });
+
+        it("can be called with initialise failing", async () => {
+            const obj = new TestCLI();
+            obj.initialiseFail = true;
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "exception" ]});
+            Chai.expect(result).to.equal(1);
         });
 
         it("can be called with exception command", async () => {

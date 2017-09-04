@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.8.3
+
+* CLIBase derived classed can have initialise methods
+* CLIBase derived classed can display additional version info
+
 ## v0.8.2
 
 * Added FileSystem.directoryGetFiles and FileSytem.directoryGetFolders
