@@ -51,6 +51,6 @@
     "typescript": "^2.5.1"
   },
   "dependencies": {
-    "unitejs-framework": "^0.8.2"
+    "unitejs-framework": "^0.8.3"
   }
 }
