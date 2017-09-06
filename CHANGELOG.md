@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.0
+
+Release
+
 ## v0.8.3
 
 * CLIBase derived classed can have initialise methods
