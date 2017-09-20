@@ -1,8 +1,12 @@
 # Changelog
 
+## v1.0.1
+
+* Fixed bug in table display
+
 ## v1.0.0
 
-Release
+* Release
 
 ## v0.8.3
 

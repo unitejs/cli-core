@@ -111,7 +111,7 @@ export abstract class CLIBase {
             if (newRow[2] === " ") {
                 logger.info(`   ${newRow.substring(1)}`);
             } else {
-                logger.info(` --${row.substring(1)}`);
+                logger.info(` --${newRow.substring(1)}`);
             }
         }
     }

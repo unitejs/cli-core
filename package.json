@@ -1,6 +1,6 @@
 {
   "name": "unitejs-cli-core",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Common code for UniteJS CLI apps",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -51,6 +51,6 @@
     "typescript": "^2.5.2"
   },
   "dependencies": {
-    "unitejs-framework": "^1.0.0"
+    "unitejs-framework": "^1.0.2"
   }
 }
