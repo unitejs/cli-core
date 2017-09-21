@@ -56,20 +56,20 @@ export class CommandLineParser {
         return this._command;
     }
 
-    public getStringArgument(argumentName: string): string | undefined | null {
+    public getStringArgument<T extends string>(argumentName: string): T | undefined | null {
         if (this.hasArgument(argumentName)) {
             const arg = this._arguments[argumentName];
             delete this._arguments[argumentName];
 
             if (arg === null) {
-                return arg;
+                return <T>arg;
             } else {
                 if (arg.length >= 2 && arg.startsWith("\"") && arg.endsWith("\"")) {
-                    return arg.substring(1, arg.length - 1).trim();
+                    return <T>arg.substring(1, arg.length - 1).trim();
                 } else if (arg.length >= 2 && arg.startsWith("'") && arg.endsWith("'")) {
-                    return arg.substring(1, arg.length - 1).trim();
+                    return <T>arg.substring(1, arg.length - 1).trim();
                 } else {
-                    return arg.trim();
+                    return <T>arg.trim();
                 }
             }
         } else {
