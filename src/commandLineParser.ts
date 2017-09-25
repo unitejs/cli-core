@@ -116,6 +116,22 @@ export class CommandLineParser {
         }
     }
 
+    public getStringArrayArgument(argumentName: string): string[] | undefined | null {
+        if (this.hasArgument(argumentName)) {
+            const arg = this._arguments[argumentName];
+
+            if (arg !== null && arg !== undefined && arg.length > 0) {
+                delete this._arguments[argumentName];
+                return arg.split(";");
+            } else {
+                delete this._arguments[argumentName];
+                return [];
+            }
+        } else {
+            return undefined;
+        }
+    }
+
     public getRemaining(): string[] {
         const remaining: string[] = [];
 

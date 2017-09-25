@@ -243,6 +243,47 @@ describe("CommandLineParser", () => {
         });
     });
 
+    describe("getStringArrayArgument", () => {
+        it("can fail getting an unknown argument", () => {
+            const obj = new CommandLineParser();
+            Chai.expect(obj.parse(["node", "myscript", "acommand"])).to.be.deep.equal([]);
+            Chai.expect(obj.hasArgument("myArray")).to.be.equal(false);
+            Chai.expect(obj.getStringArrayArgument("myArray")).to.be.equal(undefined);
+        });
+
+        it("can succeed getting an empty argument", () => {
+            const obj = new CommandLineParser();
+            Chai.expect(obj.parse(["node", "myscript", "acommand", "--myArray"])).to.be.deep.equal([]);
+            Chai.expect(obj.hasArgument("myArray")).to.be.equal(true);
+            Chai.expect(obj.getStringArrayArgument("myArray")).to.be.deep.equal([]);
+            Chai.expect(obj.hasArgument("myArray")).to.be.equal(false);
+        });
+
+        it("can succeed getting a zero length argument", () => {
+            const obj = new CommandLineParser();
+            Chai.expect(obj.parse(["node", "myscript", "acommand", "--myArray="])).to.be.deep.equal([]);
+            Chai.expect(obj.hasArgument("myArray")).to.be.equal(true);
+            Chai.expect(obj.getStringArrayArgument("myArray")).to.be.deep.equal([]);
+            Chai.expect(obj.hasArgument("myArray")).to.be.equal(false);
+        });
+
+        it("can succeed getting a single value argument", () => {
+            const obj = new CommandLineParser();
+            Chai.expect(obj.parse(["node", "myscript", "acommand", "--myArray=one"])).to.be.deep.equal([]);
+            Chai.expect(obj.hasArgument("myArray")).to.be.equal(true);
+            Chai.expect(obj.getStringArrayArgument("myArray")).to.be.deep.equal(["one"]);
+            Chai.expect(obj.hasArgument("myArray")).to.be.equal(false);
+        });
+
+        it("can succeed getting a multiple value argument", () => {
+            const obj = new CommandLineParser();
+            Chai.expect(obj.parse(["node", "myscript", "acommand", "--myArray=one;two"])).to.be.deep.equal([]);
+            Chai.expect(obj.hasArgument("myArray")).to.be.equal(true);
+            Chai.expect(obj.getStringArrayArgument("myArray")).to.be.deep.equal(["one", "two"]);
+            Chai.expect(obj.hasArgument("myArray")).to.be.equal(false);
+        });
+    });
+
     describe("getRemaining", () => {
         it("can get non remaining if no args", () => {
             const obj = new CommandLineParser();

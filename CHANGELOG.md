@@ -3,6 +3,7 @@
 ## v1.0.2
 
 * Added generic parameter to commandLineParser.getStringArgument
+* Added commandLineParser.getStringArrayArgument
 
 ## v1.0.1
 
