@@ -135,7 +135,7 @@ gulp.task("unit-transpile", () => {
         });
 
     return tsResult.js
-        .pipe(replace(/(require.*?)(..\/src\/)/g, "$1../dist/"))
+        .pipe(replace(/(require.*?)(\.\.\/src\/)/g, "$1../dist/"))
         .pipe(sourcemaps.write({"includeContent": true}))
         .pipe(gulp.dest(unitDistFolder))
         .on("end", () => {
