@@ -95,6 +95,9 @@ export abstract class CLIBase {
     public abstract async handleCustomCommand(logger: ILogger, fileSystem: IFileSystem, commandLineParser: CommandLineParser): Promise<number>;
     public abstract displayHelp(logger: ILogger): number;
 
+    public displayAdditionalVersion(logger: ILogger): void {
+    }
+
     public checkRemaining(logger: ILogger, commandLineParser: CommandLineParser): number {
         const remaining = commandLineParser.getRemaining();
         if (remaining.length > 0) {
@@ -114,9 +117,6 @@ export abstract class CLIBase {
                 logger.info(` --${newRow.substring(1)}`);
             }
         }
-    }
-
-    protected displayAdditionalVersion(logger: ILogger): void {
     }
 
     private async handleCommand(logger: ILogger, fileSystem: IFileSystem, commandLineParser: CommandLineParser): Promise<number> {

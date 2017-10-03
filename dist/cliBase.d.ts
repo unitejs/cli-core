@@ -12,9 +12,9 @@ export declare abstract class CLIBase {
     run(process: NodeJS.Process): Promise<number>;
     abstract handleCustomCommand(logger: ILogger, fileSystem: IFileSystem, commandLineParser: CommandLineParser): Promise<number>;
     abstract displayHelp(logger: ILogger): number;
+    displayAdditionalVersion(logger: ILogger): void;
     checkRemaining(logger: ILogger, commandLineParser: CommandLineParser): number;
     protected markdownTableToCli(logger: ILogger, row: string): void;
-    protected displayAdditionalVersion(logger: ILogger): void;
     private handleCommand(logger, fileSystem, commandLineParser);
     private displayBanner(logger, fileSystem, includeTitle, commandLineParser);
 }
