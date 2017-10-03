@@ -5,7 +5,7 @@ import * as Chai from "chai";
 import * as fs from "fs";
 import * as path from "path";
 import * as Sinon from "sinon";
-import { FileSystem } from "../../../dist/fileSystem";
+import { FileSystem } from "../../../src/fileSystem";
 
 describe("FileSystem", () => {
     let sandbox: Sinon.SinonSandbox;

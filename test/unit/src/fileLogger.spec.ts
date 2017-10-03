@@ -6,7 +6,7 @@ import * as os from "os";
 import * as Sinon from "sinon";
 import { IFileSystem } from "unitejs-framework/dist/interfaces/IFileSystem";
 import { DefaultLogger } from "unitejs-framework/dist/loggers/defaultLogger";
-import { FileLogger } from "../../../dist/fileLogger";
+import { FileLogger } from "../../../src/fileLogger";
 
 describe("FileLogger", () => {
     let sandbox: Sinon.SinonSandbox;

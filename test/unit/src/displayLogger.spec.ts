@@ -5,7 +5,7 @@ import * as Chai from "chai";
 import * as os from "os";
 import * as Sinon from "sinon";
 import { DefaultLogger } from "unitejs-framework/dist/loggers/defaultLogger";
-import { DisplayLogger } from "../../../dist/displayLogger";
+import { DisplayLogger } from "../../../src/displayLogger";
 
 describe("DisplayLogger", () => {
     let sandbox: Sinon.SinonSandbox;

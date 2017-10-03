@@ -6,9 +6,9 @@ import * as Sinon from "sinon";
 import { IFileSystem } from "unitejs-framework/dist/interfaces/IFileSystem";
 import { ILogger } from "unitejs-framework/dist/interfaces/ILogger";
 import { DefaultLogger } from "unitejs-framework/dist/loggers/defaultLogger";
-import { CLIBase } from "../../../dist/cliBase";
-import { CommandLineParser } from "../../../dist/commandLineParser";
-import { FileSystem } from "../../../dist/fileSystem";
+import { CLIBase } from "../../../src/cliBase";
+import { CommandLineParser } from "../../../src/commandLineParser";
+import { FileSystem } from "../../../src/fileSystem";
 
 class TestCLI extends CLIBase {
     public initialiseFail: boolean;

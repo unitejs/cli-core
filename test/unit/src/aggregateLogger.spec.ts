@@ -4,7 +4,7 @@
 import * as Chai from "chai";
 import * as Sinon from "sinon";
 import { ILogger } from "unitejs-framework/dist/interfaces/ILogger";
-import { AggregateLogger } from "../../../dist/aggregateLogger";
+import { AggregateLogger } from "../../../src/aggregateLogger";
 
 describe("AggregateLogger", () => {
     let sandbox: Sinon.SinonSandbox;

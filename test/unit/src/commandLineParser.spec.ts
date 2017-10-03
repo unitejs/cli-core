@@ -2,7 +2,7 @@
  * Tests for CommandLineParser.
  */
 import * as Chai from "chai";
-import { CommandLineParser } from "../../../dist/commandLineParser";
+import { CommandLineParser } from "../../../src/commandLineParser";
 
 describe("CommandLineParser", () => {
     it("can be created", () => {
