@@ -277,7 +277,7 @@ describe("CommandLineParser", () => {
 
         it("can succeed getting a multiple value argument", () => {
             const obj = new CommandLineParser();
-            Chai.expect(obj.parse(["node", "myscript", "acommand", "--myArray=one;two"])).to.be.deep.equal([]);
+            Chai.expect(obj.parse(["node", "myscript", "acommand", "--myArray=one,two"])).to.be.deep.equal([]);
             Chai.expect(obj.hasArgument("myArray")).to.be.equal(true);
             Chai.expect(obj.getStringArrayArgument("myArray")).to.be.deep.equal(["one", "two"]);
             Chai.expect(obj.hasArgument("myArray")).to.be.equal(false);

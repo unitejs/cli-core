@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.1.0
+
+* Changed commandLineParser.getStringArrayArgument separator to comma
+
 ## v1.0.2
 
 * Added generic parameter to commandLineParser.getStringArgument

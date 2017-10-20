@@ -122,7 +122,7 @@ export class CommandLineParser {
 
             if (arg !== null && arg !== undefined && arg.length > 0) {
                 delete this._arguments[argumentName];
-                return arg.split(";");
+                return arg.split(",");
             } else {
                 delete this._arguments[argumentName];
                 return [];
