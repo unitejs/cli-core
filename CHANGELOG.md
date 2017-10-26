@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.1.1
+
+* Added commandLineParser.getStringArrayArgument elements trim quotes
+* Added string can be quoted with `
+* Changed improved quote trimming
+
 ## v1.1.0
 
 * Changed commandLineParser.getStringArrayArgument separator to comma

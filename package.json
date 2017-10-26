@@ -1,6 +1,6 @@
 {
   "name": "unitejs-cli-core",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Common code for UniteJS CLI apps",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -29,9 +29,9 @@
     "@types/chai": "^4.0.4",
     "@types/mocha": "^2.2.42",
     "@types/npm": "^2.0.29",
-    "@types/sinon": "^2.3.3",
+    "@types/sinon": "^2.3.7",
     "chai": "^4.1.2",
-    "coveralls": "^2.13.1",
+    "coveralls": "^3.0.0",
     "del": "^3.0.0",
     "gulp": "^3.9.1",
     "gulp-coveralls": "^0.1.4",
@@ -45,7 +45,7 @@
     "minimist": "^1.2.0",
     "remap-istanbul": "^0.9.5",
     "run-sequence": "^2.0.0",
-    "sinon": "^3.2.1",
+    "sinon": "^4.0.2",
     "tslint": "^5.7.0",
     "tslint-microsoft-contrib": "^5.0.1",
     "typescript": "^2.5.2"

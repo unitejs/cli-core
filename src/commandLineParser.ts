@@ -64,13 +64,7 @@ export class CommandLineParser {
             if (arg === null) {
                 return <T>arg;
             } else {
-                if (arg.length >= 2 && arg.startsWith("\"") && arg.endsWith("\"")) {
-                    return <T>arg.substring(1, arg.length - 1).trim();
-                } else if (arg.length >= 2 && arg.startsWith("'") && arg.endsWith("'")) {
-                    return <T>arg.substring(1, arg.length - 1).trim();
-                } else {
-                    return <T>arg.trim();
-                }
+                return <T>this.trimQuotes(arg);
             }
         } else {
             return undefined;
@@ -122,7 +116,13 @@ export class CommandLineParser {
 
             if (arg !== null && arg !== undefined && arg.length > 0) {
                 delete this._arguments[argumentName];
-                return arg.split(",");
+                const arr = arg.split(",");
+
+                for (let i = 0; i < arr.length; i++) {
+                    arr[i] = this.trimQuotes(arr[i]);
+                }
+
+                return arr;
             } else {
                 delete this._arguments[argumentName];
                 return [];
@@ -147,5 +147,19 @@ export class CommandLineParser {
 
     public hasArgument(argumentName: string): boolean {
         return this._arguments !== undefined && (argumentName in this._arguments);
+    }
+
+    private trimQuotes(input: string): string {
+        const arg = input.trim();
+
+        if (arg.length >= 2 && arg.startsWith("\"") && arg.endsWith("\"")) {
+            return arg.substring(1, arg.length - 1).trim();
+        } else if (arg.length >= 2 && arg.startsWith("'") && arg.endsWith("'")) {
+            return arg.substring(1, arg.length - 1).trim();
+        } else if (arg.length >= 2 && arg.startsWith("`") && arg.endsWith("`")) {
+            return arg.substring(1, arg.length - 1).trim();
+        } else {
+            return arg;
+        }
     }
 }

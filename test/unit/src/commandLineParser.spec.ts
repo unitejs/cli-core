@@ -143,6 +143,14 @@ describe("CommandLineParser", () => {
             Chai.expect(obj.getStringArgument("logFile")).to.be.equal("hello");
             Chai.expect(obj.hasArgument("logFile")).to.be.equal(false);
         });
+
+        it("can succeed getting a backtick quoted value argument", () => {
+            const obj = new CommandLineParser();
+            Chai.expect(obj.parse(["node", "myscript", "acommand", "--logFile=`hello`"])).to.be.deep.equal([]);
+            Chai.expect(obj.hasArgument("logFile")).to.be.equal(true);
+            Chai.expect(obj.getStringArgument("logFile")).to.be.equal("hello");
+            Chai.expect(obj.hasArgument("logFile")).to.be.equal(false);
+        });
     });
 
     describe("getNumberArgument", () => {
