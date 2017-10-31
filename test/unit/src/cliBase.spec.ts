@@ -144,7 +144,7 @@ describe("CLIBase", () => {
 
         it("can be called with help command", async () => {
             const obj = new TestCLI();
-            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "help" ]});
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "help", "--disableVersionCheck" ]});
             Chai.expect(result).to.equal(0);
             Chai.expect(logMessages[0]).to.contain("MyApp CLI");
             Chai.expect(logMessages[1]).to.contain("v");

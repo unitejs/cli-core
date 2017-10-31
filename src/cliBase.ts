@@ -14,6 +14,7 @@ import { FileSystem } from "./fileSystem";
 import { WebSecureClient } from "./webSecureClient";
 
 export abstract class CLIBase {
+    protected _disableVersionCheck: boolean;
     protected _appName: string;
     protected _packageName: string;
     protected _packageVersion: string;
@@ -40,6 +41,8 @@ export abstract class CLIBase {
 
             const noColor = commandLineParser.getBooleanArgument(CommandLineArgConstants.NO_COLOR);
             loggers.push(new DisplayLogger(process, noColor));
+
+            this._disableVersionCheck = commandLineParser.getBooleanArgument(CommandLineArgConstants.DISABLE_VERSION_CHECK);
 
             const logFile = commandLineParser.getStringArgument(CommandLineArgConstants.LOG_FILE);
             if (logFile !== undefined && logFile !== null && logFile.length > 0) {
@@ -205,7 +208,9 @@ export abstract class CLIBase {
             }
         }
 
-        await this.checkVersion(logger, new WebSecureClient());
+        if (!this._disableVersionCheck) {
+            await this.checkVersion(logger, new WebSecureClient());
+        }
 
         return ret;
     }

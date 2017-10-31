@@ -7,6 +7,7 @@ import { ILogger } from "unitejs-framework/dist/interfaces/ILogger";
 import { CommandLineParser } from "./commandLineParser";
 import { WebSecureClient } from "./webSecureClient";
 export declare abstract class CLIBase {
+    protected _disableVersionCheck: boolean;
     protected _appName: string;
     protected _packageName: string;
     protected _packageVersion: string;
