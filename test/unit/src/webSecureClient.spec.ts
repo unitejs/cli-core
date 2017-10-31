@@ -43,14 +43,17 @@ describe("WebSecureClient", () => {
         });
 
         it("can return an error", async () => {
-            const getMock = {
+            const responseMock = {
                 on: (type: string, cb: (data: Error) => {}) => {
                     if (type === "error") {
                         cb(new Error("Invalid"));
                     }
                 }
             };
-            sandbox.stub(https, "get").returns(getMock);
+            const getStub = sandbox.stub(https, "get");
+            getStub.callsFake((url, cb) => {
+                cb(responseMock);
+            });
             const obj = new WebSecureClient();
             try {
                 await obj.getText("https://a.com");
@@ -60,7 +63,7 @@ describe("WebSecureClient", () => {
         });
 
         it("can return data", async () => {
-            const getMock = {
+            const responseMock = {
                 on: (type: string, cb: (data: string) => {}) => {
                     if (type === "data") {
                         cb("hello");
@@ -69,7 +72,10 @@ describe("WebSecureClient", () => {
                     }
                 }
             };
-            sandbox.stub(https, "get").returns(getMock);
+            const getStub = sandbox.stub(https, "get");
+            getStub.callsFake((url, cb) => {
+                cb(responseMock);
+            });
             const obj = new WebSecureClient();
             const data = await obj.getText("https://a.com");
             Chai.expect(data).to.contain("hello");
@@ -78,7 +84,7 @@ describe("WebSecureClient", () => {
 
     describe("getJson", () => {
         it("can be called and get data", async () => {
-            const getMock = {
+            const responseMock = {
                 on: (type: string, cb: (data: string) => {}) => {
                     if (type === "data") {
                         cb(JSON.stringify({a: "b", c: [1, 2, 3]}));
@@ -87,7 +93,10 @@ describe("WebSecureClient", () => {
                     }
                 }
             };
-            sandbox.stub(https, "get").returns(getMock);
+            const getStub = sandbox.stub(https, "get");
+            getStub.callsFake((url, cb) => {
+                cb(responseMock);
+            });
             const obj = new WebSecureClient();
             const data = await obj.getJson("https://a.com");
             Chai.expect(data).to.deep.equal({a: "b", c: [1, 2, 3]});

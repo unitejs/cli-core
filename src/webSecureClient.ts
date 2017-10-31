@@ -10,16 +10,17 @@ export class WebSecureClient {
                 if (url === undefined || url === null) {
                     reject("Invalid url");
                 } else {
-                    let data = "";
-                    const response = https.get(url);
-                    response.on("data", (d) => {
-                        data += d;
-                    });
-                    response.on("end", () => {
-                        resolve(data);
-                    });
-                    response.on("error", (err) => {
-                        reject(err);
+                    https.get(url, response => {
+                        let data = "";
+                        response.on("data", (d) => {
+                            data += d;
+                        });
+                        response.on("end", () => {
+                            resolve(data);
+                        });
+                        response.on("error", (err) => {
+                            reject(err);
+                        });
                     });
                 }
             } catch (err) {
