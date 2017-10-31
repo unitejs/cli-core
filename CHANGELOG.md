@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.1.2
+
+* Added new version check
+
 ## v1.1.1
 
 * Added commandLineParser.getStringArrayArgument elements trim quotes

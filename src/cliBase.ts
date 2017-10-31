@@ -11,9 +11,12 @@ import { CommandLineParser } from "./commandLineParser";
 import { DisplayLogger } from "./displayLogger";
 import { FileLogger } from "./fileLogger";
 import { FileSystem } from "./fileSystem";
+import { WebSecureClient } from "./webSecureClient";
 
 export abstract class CLIBase {
-    private _appName: string;
+    protected _appName: string;
+    protected _packageName: string;
+    protected _packageVersion: string;
 
     constructor(appName: string) {
         this._appName = appName;
@@ -108,6 +111,53 @@ export abstract class CLIBase {
         }
     }
 
+    protected async checkVersion(logger: ILogger, client: WebSecureClient): Promise<boolean> {
+        let isNewer = false;
+
+        try {
+            if (this._packageName && this._packageVersion) {
+                type RegistryPackage = { version: string };
+                const response: RegistryPackage =
+                    await client.getJson<RegistryPackage>(`https://registry.npmjs.org/${this._packageName}/latest/`);
+
+                if (response && response.version) {
+                    const parts = response.version.split(".");
+                    const currentParts = this._packageVersion.split(".");
+                    if (parts.length === 3 && currentParts.length === 3) {
+                        const major = parseInt(parts[0], 10);
+                        const majorCurrent = parseInt(currentParts[0], 10);
+
+                        if (major > majorCurrent) {
+                            isNewer = true;
+                        } else if (major === majorCurrent) {
+                            const minor = parseInt(parts[1], 10);
+                            const minorCurrent = parseInt(currentParts[1], 10);
+
+                            if (minor > minorCurrent) {
+                                isNewer = true;
+                            } else if (minor === minorCurrent) {
+                                const patch = parseInt(parts[2], 10);
+                                const patchCurrent = parseInt(currentParts[2], 10);
+
+                                isNewer = patch > patchCurrent;
+                            }
+                        }
+
+                        if (isNewer) {
+                            logger.info("");
+                            logger.warning(`A new version v${response.version} of ${this._packageName} is available.`);
+                            logger.warning(`You are current using version v${this._packageVersion}.`);
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            // We will ignore errors as the version check doesn't warrant failing anything
+        }
+
+        return isNewer;
+    }
+
     protected markdownTableToCli(logger: ILogger, row: string): void {
         if (row !== undefined && row !== null && row.length > 2) {
             const newRow = row.substring(0, row.length - 1).trim().replace(/\|/g, "");
@@ -155,6 +205,8 @@ export abstract class CLIBase {
             }
         }
 
+        await this.checkVersion(logger, new WebSecureClient());
+
         return ret;
     }
 
@@ -166,7 +218,10 @@ export abstract class CLIBase {
         const packageJsonDir = fileSystem.pathCombine(fileSystem.pathGetDirectory(`${commandLineParser.getScript()}.js`), "../");
         const packageJsonExists = await fileSystem.fileExists(packageJsonDir, "package.json");
         if (packageJsonExists) {
-            const packageJson = await fileSystem.fileReadJson<{ version: string }>(packageJsonDir, "package.json");
+            type Package = { name: string; version: string };
+            const packageJson = await fileSystem.fileReadJson<Package>(packageJsonDir, "package.json");
+            this._packageName = packageJson.name;
+            this._packageVersion = packageJson.version;
             logger.banner(`CLI v${packageJson.version}`);
         }
         this.displayAdditionalVersion(logger);

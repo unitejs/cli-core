@@ -5,8 +5,11 @@
 import { IFileSystem } from "unitejs-framework/dist/interfaces/IFileSystem";
 import { ILogger } from "unitejs-framework/dist/interfaces/ILogger";
 import { CommandLineParser } from "./commandLineParser";
+import { WebSecureClient } from "./webSecureClient";
 export declare abstract class CLIBase {
-    private _appName;
+    protected _appName: string;
+    protected _packageName: string;
+    protected _packageVersion: string;
     constructor(appName: string);
     initialise(logger: ILogger, fileSystem: IFileSystem): Promise<number>;
     run(process: NodeJS.Process): Promise<number>;
@@ -14,6 +17,7 @@ export declare abstract class CLIBase {
     abstract displayHelp(logger: ILogger): number;
     displayAdditionalVersion(logger: ILogger): void;
     checkRemaining(logger: ILogger, commandLineParser: CommandLineParser): number;
+    protected checkVersion(logger: ILogger, client: WebSecureClient): Promise<boolean>;
     protected markdownTableToCli(logger: ILogger, row: string): void;
     private handleCommand(logger, fileSystem, commandLineParser);
     private displayBanner(logger, fileSystem, includeTitle, commandLineParser);

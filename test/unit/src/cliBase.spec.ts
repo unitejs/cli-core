@@ -9,12 +9,18 @@ import { DefaultLogger } from "unitejs-framework/dist/loggers/defaultLogger";
 import { CLIBase } from "../../../src/cliBase";
 import { CommandLineParser } from "../../../src/commandLineParser";
 import { FileSystem } from "../../../src/fileSystem";
+import { WebSecureClient } from "../../../src/webSecureClient";
 
 class TestCLI extends CLIBase {
     public initialiseFail: boolean;
 
     constructor() {
         super("MyApp");
+    }
+
+    public setPackageDetails(name: string, version: string): void {
+        super._packageName = name;
+        super._packageVersion = version;
     }
 
     public async initialise(logger: ILogger, fileSystem: IFileSystem) : Promise<number> {
@@ -43,6 +49,14 @@ class TestCLI extends CLIBase {
         this.markdownTableToCli(logger, "| packageName | plain text | Name to be used for your package |");
         this.markdownTableToCli(logger, "|             |            | Other info                       |");
         return 0;
+    }
+
+    public async checkVersion(logger: ILogger, client: WebSecureClient): Promise<boolean> {
+        return Promise.resolve(false);
+    }
+
+    public async testCheckVersion(logger: ILogger, client: WebSecureClient): Promise<boolean> {
+        return super.checkVersion(logger, client);
     }
 }
 
@@ -221,6 +235,97 @@ describe("CLIBase", () => {
             const result = obj.checkRemaining(loggerStub, commandLineParser);
             Chai.expect(result).to.equal(1);
             Chai.expect(loggerErrorSpy.args[0][0]).to.contain("Unrecognized arguments");
+        });
+    });
+
+    describe("checkVersion", () => {
+        it("no new version with no package information", async () => {
+            const obj = new TestCLI();
+            const clientStub: WebSecureClient = new WebSecureClient();
+            sandbox.stub(clientStub, "getText").resolves(undefined);
+            const result = await obj.testCheckVersion(loggerStub, clientStub);
+            Chai.expect(result).to.equal(false);
+        });
+
+        it("no new version with no response", async () => {
+            const obj = new TestCLI();
+            const clientStub: WebSecureClient = new WebSecureClient();
+            sandbox.stub(clientStub, "getText").resolves(undefined);
+            await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "help" ]});
+            const result = await obj.testCheckVersion(loggerStub, clientStub);
+            Chai.expect(result).to.equal(false);
+        });
+
+        it("no new version with empty response", async () => {
+            const obj = new TestCLI();
+            const clientStub: WebSecureClient = new WebSecureClient();
+            sandbox.stub(clientStub, "getText").resolves(JSON.stringify({}));
+            await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "help" ]});
+            const result = await obj.testCheckVersion(loggerStub, clientStub);
+            Chai.expect(result).to.equal(false);
+        });
+
+        it("no new version with invalid reponse", async () => {
+            const obj = new TestCLI();
+            const clientStub: WebSecureClient = new WebSecureClient();
+            sandbox.stub(clientStub, "getText").resolves(JSON.stringify({ version: "1"}));
+            await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "help" ]});
+            const result = await obj.testCheckVersion(loggerStub, clientStub);
+            Chai.expect(result).to.equal(false);
+        });
+
+        it("no new version with valid reponse major older", async () => {
+            const obj = new TestCLI();
+            obj.setPackageDetails("p", "2.0.0");
+            const clientStub: WebSecureClient = new WebSecureClient();
+            sandbox.stub(clientStub, "getText").resolves(JSON.stringify({ version: "1.0.0"}));
+            const result = await obj.testCheckVersion(loggerStub, clientStub);
+            Chai.expect(result).to.equal(false);
+        });
+
+        it("no new version with valid reponse major newer", async () => {
+            const obj = new TestCLI();
+            obj.setPackageDetails("p", "2.0.0");
+            const clientStub: WebSecureClient = new WebSecureClient();
+            sandbox.stub(clientStub, "getText").resolves(JSON.stringify({ version: "3.0.0"}));
+            const result = await obj.testCheckVersion(loggerStub, clientStub);
+            Chai.expect(result).to.equal(true);
+        });
+
+        it("no new version with valid reponse minor older", async () => {
+            const obj = new TestCLI();
+            obj.setPackageDetails("p", "2.1.0");
+            const clientStub: WebSecureClient = new WebSecureClient();
+            sandbox.stub(clientStub, "getText").resolves(JSON.stringify({ version: "2.0.0"}));
+            const result = await obj.testCheckVersion(loggerStub, clientStub);
+            Chai.expect(result).to.equal(false);
+        });
+
+        it("no new version with valid reponse minor newer", async () => {
+            const obj = new TestCLI();
+            obj.setPackageDetails("p", "2.0.0");
+            const clientStub: WebSecureClient = new WebSecureClient();
+            sandbox.stub(clientStub, "getText").resolves(JSON.stringify({ version: "2.1.0"}));
+            const result = await obj.testCheckVersion(loggerStub, clientStub);
+            Chai.expect(result).to.equal(true);
+        });
+
+        it("no new version with valid reponse patch older", async () => {
+            const obj = new TestCLI();
+            obj.setPackageDetails("p", "2.0.1");
+            const clientStub: WebSecureClient = new WebSecureClient();
+            sandbox.stub(clientStub, "getText").resolves(JSON.stringify({ version: "2.0.0"}));
+            const result = await obj.testCheckVersion(loggerStub, clientStub);
+            Chai.expect(result).to.equal(false);
+        });
+
+        it("no new version with valid reponse patch newer", async () => {
+            const obj = new TestCLI();
+            obj.setPackageDetails("p", "2.0.0");
+            const clientStub: WebSecureClient = new WebSecureClient();
+            sandbox.stub(clientStub, "getText").resolves(JSON.stringify({ version: "2.0.1"}));
+            const result = await obj.testCheckVersion(loggerStub, clientStub);
+            Chai.expect(result).to.equal(true);
         });
     });
 });
