@@ -121,7 +121,7 @@ export abstract class CLIBase {
             if (this._packageName && this._packageVersion) {
                 type RegistryPackage = { version: string };
                 const response: RegistryPackage =
-                    await client.getJson<RegistryPackage>(`https://registry.npmjs.org/${this._packageName}/latest/`);
+                    await client.getJson<RegistryPackage>(`https://registry.npmjs.org/${this._packageName}/latest/`, 2000);
 
                 if (response && response.version) {
                     const parts = response.version.split(".");
