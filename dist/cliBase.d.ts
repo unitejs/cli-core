@@ -11,6 +11,7 @@ export declare abstract class CLIBase {
     protected _appName: string;
     protected _packageName: string;
     protected _packageVersion: string;
+    protected _newVersion: string;
     constructor(appName: string);
     initialise(logger: ILogger, fileSystem: IFileSystem): Promise<number>;
     run(process: NodeJS.Process): Promise<number>;
@@ -18,7 +19,7 @@ export declare abstract class CLIBase {
     abstract displayHelp(logger: ILogger): number;
     displayAdditionalVersion(logger: ILogger): void;
     checkRemaining(logger: ILogger, commandLineParser: CommandLineParser): number;
-    protected checkVersion(logger: ILogger, client: WebSecureClient): Promise<boolean>;
+    protected checkVersion(client: WebSecureClient): Promise<boolean>;
     protected markdownTableToCli(logger: ILogger, row: string): void;
     private handleCommand(logger, fileSystem, commandLineParser);
     private displayBanner(logger, fileSystem, includeTitle, commandLineParser);

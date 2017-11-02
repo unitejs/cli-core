@@ -16,11 +16,16 @@ class TestCLI extends CLIBase {
 
     constructor() {
         super("MyApp");
+        this._newVersion = "";
     }
 
     public setPackageDetails(name: string, version: string): void {
         super._packageName = name;
         super._packageVersion = version;
+    }
+
+    public setNewVersion(newVersion: string) : void {
+        this._newVersion = newVersion;
     }
 
     public async initialise(logger: ILogger, fileSystem: IFileSystem) : Promise<number> {
@@ -51,12 +56,12 @@ class TestCLI extends CLIBase {
         return 0;
     }
 
-    public async checkVersion(logger: ILogger, client: WebSecureClient): Promise<boolean> {
+    public async checkVersion(client: WebSecureClient): Promise<boolean> {
         return Promise.resolve(false);
     }
 
-    public async testCheckVersion(logger: ILogger, client: WebSecureClient): Promise<boolean> {
-        return super.checkVersion(logger, client);
+    public async testCheckVersion(client: WebSecureClient): Promise<boolean> {
+        return super.checkVersion(client);
     }
 }
 
@@ -243,7 +248,7 @@ describe("CLIBase", () => {
             const obj = new TestCLI();
             const clientStub: WebSecureClient = new WebSecureClient();
             sandbox.stub(clientStub, "getText").resolves(undefined);
-            const result = await obj.testCheckVersion(loggerStub, clientStub);
+            const result = await obj.testCheckVersion(clientStub);
             Chai.expect(result).to.equal(false);
         });
 
@@ -252,7 +257,7 @@ describe("CLIBase", () => {
             const clientStub: WebSecureClient = new WebSecureClient();
             sandbox.stub(clientStub, "getText").resolves(undefined);
             await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "help" ]});
-            const result = await obj.testCheckVersion(loggerStub, clientStub);
+            const result = await obj.testCheckVersion(clientStub);
             Chai.expect(result).to.equal(false);
         });
 
@@ -261,7 +266,7 @@ describe("CLIBase", () => {
             const clientStub: WebSecureClient = new WebSecureClient();
             sandbox.stub(clientStub, "getText").resolves(JSON.stringify({}));
             await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "help" ]});
-            const result = await obj.testCheckVersion(loggerStub, clientStub);
+            const result = await obj.testCheckVersion(clientStub);
             Chai.expect(result).to.equal(false);
         });
 
@@ -270,7 +275,7 @@ describe("CLIBase", () => {
             const clientStub: WebSecureClient = new WebSecureClient();
             sandbox.stub(clientStub, "getText").resolves(JSON.stringify({ version: "1"}));
             await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "help" ]});
-            const result = await obj.testCheckVersion(loggerStub, clientStub);
+            const result = await obj.testCheckVersion(clientStub);
             Chai.expect(result).to.equal(false);
         });
 
@@ -279,7 +284,7 @@ describe("CLIBase", () => {
             obj.setPackageDetails("p", "2.0.0");
             const clientStub: WebSecureClient = new WebSecureClient();
             sandbox.stub(clientStub, "getText").resolves(JSON.stringify({ version: "1.0.0"}));
-            const result = await obj.testCheckVersion(loggerStub, clientStub);
+            const result = await obj.testCheckVersion(clientStub);
             Chai.expect(result).to.equal(false);
         });
 
@@ -288,7 +293,7 @@ describe("CLIBase", () => {
             obj.setPackageDetails("p", "2.0.0");
             const clientStub: WebSecureClient = new WebSecureClient();
             sandbox.stub(clientStub, "getText").resolves(JSON.stringify({ version: "3.0.0"}));
-            const result = await obj.testCheckVersion(loggerStub, clientStub);
+            const result = await obj.testCheckVersion(clientStub);
             Chai.expect(result).to.equal(true);
         });
 
@@ -297,7 +302,7 @@ describe("CLIBase", () => {
             obj.setPackageDetails("p", "2.1.0");
             const clientStub: WebSecureClient = new WebSecureClient();
             sandbox.stub(clientStub, "getText").resolves(JSON.stringify({ version: "2.0.0"}));
-            const result = await obj.testCheckVersion(loggerStub, clientStub);
+            const result = await obj.testCheckVersion(clientStub);
             Chai.expect(result).to.equal(false);
         });
 
@@ -306,7 +311,7 @@ describe("CLIBase", () => {
             obj.setPackageDetails("p", "2.0.0");
             const clientStub: WebSecureClient = new WebSecureClient();
             sandbox.stub(clientStub, "getText").resolves(JSON.stringify({ version: "2.1.0"}));
-            const result = await obj.testCheckVersion(loggerStub, clientStub);
+            const result = await obj.testCheckVersion(clientStub);
             Chai.expect(result).to.equal(true);
         });
 
@@ -315,7 +320,7 @@ describe("CLIBase", () => {
             obj.setPackageDetails("p", "2.0.1");
             const clientStub: WebSecureClient = new WebSecureClient();
             sandbox.stub(clientStub, "getText").resolves(JSON.stringify({ version: "2.0.0"}));
-            const result = await obj.testCheckVersion(loggerStub, clientStub);
+            const result = await obj.testCheckVersion(clientStub);
             Chai.expect(result).to.equal(false);
         });
 
@@ -324,8 +329,30 @@ describe("CLIBase", () => {
             obj.setPackageDetails("p", "2.0.0");
             const clientStub: WebSecureClient = new WebSecureClient();
             sandbox.stub(clientStub, "getText").resolves(JSON.stringify({ version: "2.0.1"}));
-            const result = await obj.testCheckVersion(loggerStub, clientStub);
+            const result = await obj.testCheckVersion(clientStub);
             Chai.expect(result).to.equal(true);
+        });
+
+        it("can wait for version to complete with no new version", async () => {
+            const obj = new TestCLI();
+            obj.setNewVersion(undefined);
+            setTimeout(() => {
+                            obj.setNewVersion("");
+                        },
+                       100);
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "help" ]});
+            Chai.expect(result).to.equal(0);
+        });
+
+        it("can wait for version to complete with new version", async () => {
+            const obj = new TestCLI();
+            obj.setNewVersion(undefined);
+            setTimeout(() => {
+                            obj.setNewVersion("1.0.0");
+                        },
+                       100);
+            const result = await obj.run(<NodeJS.Process>{ argv: [ "node", "./bin/script.js", "help" ]});
+            Chai.expect(result).to.equal(0);
         });
     });
 });

@@ -18,6 +18,7 @@ export abstract class CLIBase {
     protected _appName: string;
     protected _packageName: string;
     protected _packageVersion: string;
+    protected _newVersion: string;
 
     constructor(appName: string) {
         this._appName = appName;
@@ -114,14 +115,15 @@ export abstract class CLIBase {
         }
     }
 
-    protected async checkVersion(logger: ILogger, client: WebSecureClient): Promise<boolean> {
+    protected async checkVersion(client: WebSecureClient): Promise<boolean> {
         let isNewer = false;
 
         try {
+            let newVersion = "";
             if (this._packageName && this._packageVersion) {
                 type RegistryPackage = { version: string };
                 const response: RegistryPackage =
-                    await client.getJson<RegistryPackage>(`https://registry.npmjs.org/${this._packageName}/latest/`, 2000);
+                    await client.getJson<RegistryPackage>(`https://registry.npmjs.org/${this._packageName}/latest/`, 1000);
 
                 if (response && response.version) {
                     const parts = response.version.split(".");
@@ -147,15 +149,16 @@ export abstract class CLIBase {
                         }
 
                         if (isNewer) {
-                            logger.info("");
-                            logger.warning(`A new version v${response.version} of ${this._packageName} is available.`);
-                            logger.warning(`You are current using version v${this._packageVersion}.`);
+                            newVersion = response.version;
                         }
                     }
                 }
             }
+            this._newVersion = newVersion;
         } catch (err) {
             // We will ignore errors as the version check doesn't warrant failing anything
+            // bet set the new version to empty so the cli exits
+            this._newVersion = "";
         }
 
         return isNewer;
@@ -209,7 +212,21 @@ export abstract class CLIBase {
         }
 
         if (!this._disableVersionCheck) {
-            await this.checkVersion(logger, new WebSecureClient());
+            await new Promise((resolve) => {
+                const versionCheckIntervalId =
+                    setInterval(() => {
+                                    if (this._newVersion !== undefined) {
+                                        clearInterval(versionCheckIntervalId);
+                                        if (this._newVersion.length > 0) {
+                                            logger.info("");
+                                            logger.warning(`A new version v${this._newVersion} of ${this._packageName} is available.`);
+                                            logger.warning(`You are current using version v${this._packageVersion}.`);
+                                        }
+                                        resolve();
+                                    }
+                                },
+                                50);
+            });
         }
 
         return ret;
@@ -228,10 +245,18 @@ export abstract class CLIBase {
             this._packageName = packageJson.name;
             this._packageVersion = packageJson.version;
             logger.banner(`CLI v${packageJson.version}`);
+        } else {
+            this._disableVersionCheck = true;
         }
         this.displayAdditionalVersion(logger);
         if (includeTitle) {
             logger.banner("");
+        }
+        if (!this._disableVersionCheck) {
+            // We don't wait for the promise to resolve as we don't want it to hold up anything else
+            // message will be displayed at the end
+            /* tslint:disable:no-floating-promises */
+            this.checkVersion(new WebSecureClient());
         }
     }
 }

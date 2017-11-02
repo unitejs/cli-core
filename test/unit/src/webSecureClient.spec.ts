@@ -43,22 +43,48 @@ describe("WebSecureClient", () => {
         });
 
         it("can return an error", async () => {
-            const responseMock = {
+            const requestMock = {
                 on: (type: string, cb: (data: Error) => {}) => {
                     if (type === "error") {
                         cb(new Error("Invalid"));
                     }
                 }
             };
-            const getStub = sandbox.stub(https, "get");
-            getStub.callsFake((url, cb) => {
-                cb(responseMock);
-            });
+            sandbox.stub(https, "get").returns(requestMock);
             const obj = new WebSecureClient();
             try {
                 await obj.getText("https://a.com");
             } catch (err) {
                 Chai.expect(err.message).to.contain("Invalid");
+            }
+        });
+
+        it("can timeout", async () => {
+            const socketMock = {
+                on: (type: string, cb: (data: Error) => {}) => {
+                    if (type === "timeout") {
+                        cb(new Error("Invalid"));
+                    }
+                },
+                setTimeout: () => {
+                }
+            };
+            const requestMock = {
+                on: (type: string, cb: (data: any) => {}) => {
+                    if (type === "socket") {
+                        cb(socketMock);
+                    }
+                },
+                abort: () => {
+                    throw new Error("Aborted");
+                }
+            };
+            sandbox.stub(https, "get").returns(requestMock);
+            const obj = new WebSecureClient();
+            try {
+                await obj.getText("https://a.com", 1);
+            } catch (err) {
+                Chai.expect(err.message).to.contain("Aborted");
             }
         });
 
