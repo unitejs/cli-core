@@ -9,13 +9,9 @@ import { FileSystem } from "../../../src/fileSystem";
 
 describe("FileSystem", () => {
     let sandbox: Sinon.SinonSandbox;
-    let pathRelativeStub: Sinon.SinonSpy;
-    let pathJoinStub: Sinon.SinonSpy;
 
     beforeEach(() => {
         sandbox = Sinon.sandbox.create();
-        pathRelativeStub = sandbox.spy(path, "relative");
-        pathJoinStub = sandbox.spy(path, "join");
     });
 
     afterEach(async () => {
