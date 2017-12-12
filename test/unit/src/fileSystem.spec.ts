@@ -5,6 +5,7 @@ import * as Chai from "chai";
 import * as fs from "fs";
 import * as path from "path";
 import * as Sinon from "sinon";
+import * as util from "util";
 import { FileSystem } from "../../../src/fileSystem";
 
 describe("FileSystem", () => {
@@ -188,6 +189,16 @@ describe("FileSystem", () => {
             Chai.expect(exists).to.equal(true);
         });
 
+        it("can be called with existing path and symlink filename", async () => {
+            const obj = new FileSystem();
+            await obj.directoryCreate("./test/unit/temp/");
+            await obj.directoryCreate("./test/unit/temp/folder");
+            const asyncSymlink = util.promisify(fs.symlink);
+            await asyncSymlink("./test/unit/temp/folder", "./test/unit/temp/folderlink");
+            const exists = await obj.directoryExists("./test/unit/temp/folderlink");
+            Chai.expect(exists).to.equal(true);
+        });
+
         it("can be called with non existing directory", async () => {
             const obj = new FileSystem();
             const exists = await obj.directoryExists("./blah");
@@ -352,6 +363,16 @@ describe("FileSystem", () => {
             await obj.directoryCreate("./test/unit/temp/");
             await obj.fileWriteText("./test/unit/temp", "temp.txt", "blah");
             const exists = await obj.fileExists("./test/unit/temp", "temp.txt");
+            Chai.expect(exists).to.equal(true);
+        });
+
+        it("can be called with existing path and symlink filename", async () => {
+            const obj = new FileSystem();
+            await obj.directoryCreate("./test/unit/temp/");
+            await obj.fileWriteText("./test/unit/temp", "temp.txt", "blah");
+            const asyncSymlink = util.promisify(fs.symlink);
+            await asyncSymlink("./test/unit/temp/temp.txt", "./test/unit/temp/templink.txt");
+            const exists = await obj.fileExists("./test/unit/temp", "templink.txt");
             Chai.expect(exists).to.equal(true);
         });
 

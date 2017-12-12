@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.1.3
+
+* Added fileSystem.directoryExists additionally checks for symbolic links
+* Added fileSystem.fileExists additionally checks for symbolic links
+
 ## v1.1.2
 
 * Added new version check

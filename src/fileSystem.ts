@@ -86,7 +86,7 @@ export class FileSystem implements IFileSystem {
         } else {
             try {
                 const stats = await util.promisify(fs.lstat)(this.cleanupSeparators(directoryName));
-                return stats.isDirectory();
+                return stats.isDirectory() || stats.isSymbolicLink();
             } catch (err) {
                 if (err.code === "ENOENT") {
                     return false;
@@ -186,7 +186,7 @@ export class FileSystem implements IFileSystem {
         } else {
             try {
                 const stat = await util.promisify(fs.lstat)(path.join(this.cleanupSeparators(directoryName), fileName));
-                return stat.isFile();
+                return stat.isFile() || stat.isSymbolicLink();
             } catch (err) {
                 if (err.code === "ENOENT") {
                     return false;
