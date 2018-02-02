@@ -9,9 +9,9 @@ import { ILogger } from "unitejs-framework/dist/interfaces/ILogger";
 import { DefaultLogger } from "unitejs-framework/dist/loggers/defaultLogger";
 
 export class FileLogger implements ILogger {
-    private _fileSystem: IFileSystem;
-    private _logFolder: string;
-    private _logFile: string;
+    private readonly _fileSystem: IFileSystem;
+    private readonly _logFolder: string;
+    private readonly _logFile: string;
     private _buffer: string;
     private _flushIntervalId: NodeJS.Timer;
 

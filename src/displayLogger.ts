@@ -7,8 +7,8 @@ import { ILogger } from "unitejs-framework/dist/interfaces/ILogger";
 import { DefaultLogger } from "unitejs-framework/dist/loggers/defaultLogger";
 
 export class DisplayLogger implements ILogger {
-    private _colorsOn: boolean;
-    private _colors: { [id: string]: { start: number; stop: number } };
+    private readonly _colorsOn: boolean;
+    private readonly _colors: { [id: string]: { start: number; stop: number } };
 
     constructor(process: NodeJS.Process, noColor: boolean) {
         this._colorsOn = this.calculateColors(process, noColor);

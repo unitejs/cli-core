@@ -4,7 +4,7 @@
 import { ILogger } from "unitejs-framework/dist/interfaces/ILogger";
 
 export class AggregateLogger implements ILogger {
-    private _loggers: ILogger[];
+    private readonly _loggers: ILogger[];
 
     constructor(loggers: ILogger[]) {
         this._loggers = loggers;

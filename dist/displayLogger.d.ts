@@ -1,8 +1,8 @@
 /// <reference types="node" />
 import { ILogger } from "unitejs-framework/dist/interfaces/ILogger";
 export declare class DisplayLogger implements ILogger {
-    private _colorsOn;
-    private _colors;
+    private readonly _colorsOn;
+    private readonly _colors;
     constructor(process: NodeJS.Process, noColor: boolean);
     banner(message: string, args?: {
         [id: string]: any;

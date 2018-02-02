@@ -1,9 +1,9 @@
 import { IFileSystem } from "unitejs-framework/dist/interfaces/IFileSystem";
 import { ILogger } from "unitejs-framework/dist/interfaces/ILogger";
 export declare class FileLogger implements ILogger {
-    private _fileSystem;
-    private _logFolder;
-    private _logFile;
+    private readonly _fileSystem;
+    private readonly _logFolder;
+    private readonly _logFile;
     private _buffer;
     private _flushIntervalId;
     constructor(logFile: string, fileSystem: IFileSystem);
