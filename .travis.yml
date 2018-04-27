@@ -2,10 +2,13 @@ language: node_js
 node_js:
   - 9
 install:
-  - git clone --branch=$TRAVIS_BRANCH https://github.com/unitejs/framework.git unitejs/unitejs-framework
-  - cd unitejs/unitejs-framework
+  - cd ..
+  - git clone --branch=$TRAVIS_BRANCH https://github.com/unitejs/framework.git unitejs-framework
+  - cd unitejs-framework
   - npm link
-  - cd ../../
+  - cd ../cli-core
+  - npm install gulp -g
+  - npm link unitejs-framework
   - npm install
 script: 
   - gulp build || travis_terminate 1
