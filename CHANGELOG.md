@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.1.4
+
+* Updated dependencies
+
 ## v1.1.3
 
 * Added fileSystem.directoryExists additionally checks for symbolic links
