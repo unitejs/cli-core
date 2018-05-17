@@ -13,7 +13,7 @@ describe("DisplayLogger", () => {
     let defaultLoggerStub: Sinon.SinonStub;
 
     beforeEach(() => {
-        sandbox = Sinon.sandbox.create();
+        sandbox = Sinon.createSandbox();
         defaultLoggerStub = sandbox.stub(DefaultLogger, "log");
 
         processStub = <NodeJS.Process>{ platform: "win32" };

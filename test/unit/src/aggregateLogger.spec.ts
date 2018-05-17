@@ -15,7 +15,7 @@ describe("AggregateLogger", () => {
     let spiedErrorMethod: Sinon.SinonSpy;
 
     beforeEach(() => {
-        sandbox = Sinon.sandbox.create();
+        sandbox = Sinon.createSandbox();
         loggerStub = <ILogger>{};
         loggerStub.banner = () => { };
         loggerStub.info = () => { };

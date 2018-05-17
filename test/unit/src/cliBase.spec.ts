@@ -73,7 +73,7 @@ describe("CLIBase", () => {
     let logMessages: string[];
 
     beforeEach(() => {
-        sandbox = Sinon.sandbox.create();
+        sandbox = Sinon.createSandbox();
         defaultLoggerStub = sandbox.stub(DefaultLogger, "log");
 
         loggerStub = <ILogger>{};

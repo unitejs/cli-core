@@ -16,7 +16,7 @@ describe("FileLogger", () => {
     let logMessages: string[];
 
     beforeEach(() => {
-        sandbox = Sinon.sandbox.create();
+        sandbox = Sinon.createSandbox();
         fileSystemStub = <IFileSystem>{};
         fileSystemStub.pathGetDirectory = sandbox.stub().returns("test/unit/temp/");
         fileSystemStub.pathGetFilename = sandbox.stub().returns("test.txt");

@@ -12,7 +12,7 @@ describe("FileSystem", () => {
     let sandbox: Sinon.SinonSandbox;
 
     beforeEach(() => {
-        sandbox = Sinon.sandbox.create();
+        sandbox = Sinon.createSandbox();
     });
 
     afterEach(async () => {
