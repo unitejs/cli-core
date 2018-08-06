@@ -490,18 +490,18 @@ describe("FileSystem", () => {
         it("can be called with path and filename and content", async () => {
             const obj = new FileSystem();
             await obj.directoryCreate("./test/unit/temp/");
-            await obj.fileWriteBinary("./test/unit/temp", "fileWrite.bin", new Buffer("content"));
+            await obj.fileWriteBinary("./test/unit/temp", "fileWrite.bin", Buffer.from("content"));
             const content = await obj.fileReadBinary("./test/unit/temp", "fileWrite.bin");
-            Chai.expect(new Buffer(content).toString()).to.equal("content");
+            Chai.expect(Buffer.from(content).toString()).to.equal("content");
         });
 
         it("can be called with path and filename and append content", async () => {
             const obj = new FileSystem();
             await obj.directoryCreate("./test/unit/temp/");
-            await obj.fileWriteBinary("./test/unit/temp", "fileWrite.bin", new Buffer("content"));
-            await obj.fileWriteBinary("./test/unit/temp", "fileWrite.bin", new Buffer("extra"), true);
+            await obj.fileWriteBinary("./test/unit/temp", "fileWrite.bin", Buffer.from("content"));
+            await obj.fileWriteBinary("./test/unit/temp", "fileWrite.bin", Buffer.from("extra"), true);
             const content = await obj.fileReadBinary("./test/unit/temp", "fileWrite.bin");
-            Chai.expect(new Buffer(content).toString()).to.equal("contentextra");
+            Chai.expect(Buffer.from(content).toString()).to.equal("contentextra");
         });
     });
 
