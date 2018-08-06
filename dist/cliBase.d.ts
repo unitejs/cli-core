@@ -21,6 +21,6 @@ export declare abstract class CLIBase {
     checkRemaining(logger: ILogger, commandLineParser: CommandLineParser): number;
     protected checkVersion(client: WebSecureClient): Promise<boolean>;
     protected markdownTableToCli(logger: ILogger, row: string): void;
-    private handleCommand(logger, fileSystem, commandLineParser);
-    private displayBanner(logger, fileSystem, includeTitle, commandLineParser);
+    private handleCommand;
+    private displayBanner;
 }

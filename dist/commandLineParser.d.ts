@@ -16,5 +16,5 @@ export declare class CommandLineParser {
     getStringArrayArgument(argumentName: string): string[] | undefined | null;
     getRemaining(): string[];
     hasArgument(argumentName: string): boolean;
-    private trimQuotes(input);
+    private trimQuotes;
 }

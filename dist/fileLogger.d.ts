@@ -21,7 +21,7 @@ export declare class FileLogger implements ILogger {
     error(message: string, error?: any, args?: {
         [id: string]: any;
     }): void;
-    private write(type, message, args?);
-    private flushData();
-    private stopInterval();
+    private write;
+    private flushData;
+    private stopInterval;
 }

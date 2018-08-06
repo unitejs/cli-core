@@ -22,5 +22,5 @@ export declare class FileSystem implements IFileSystem {
     fileReadBinary(directoryName: string, fileName: string): Promise<Uint8Array>;
     fileReadJson<T>(directoryName: string, fileName: string): Promise<T>;
     fileDelete(directoryName: string, fileName: string): Promise<void>;
-    private cleanupSeparators(pathName);
+    private cleanupSeparators;
 }

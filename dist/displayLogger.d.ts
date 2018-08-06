@@ -16,9 +16,9 @@ export declare class DisplayLogger implements ILogger {
     error(message: string, err?: any, args?: {
         [id: string]: any;
     }): void;
-    private display(messageColor, argsColor, message, args?);
-    private colorStart(color);
-    private colorStop(color);
-    private arrayToReadable(args?);
-    private calculateColors(process, noColor);
+    private display;
+    private colorStart;
+    private colorStop;
+    private arrayToReadable;
+    private calculateColors;
 }
