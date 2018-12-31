@@ -2,6 +2,7 @@
  * Tests for WebSecureClient.
  */
 import * as Chai from "chai";
+import { ClientRequest, IncomingMessage } from "http";
 import * as https from "https";
 import * as Sinon from "sinon";
 import { WebSecureClient } from "../../../src/webSecureClient";
@@ -43,7 +44,7 @@ describe("WebSecureClient", () => {
         });
 
         it("can return an error", async () => {
-            const requestMock = {
+            const requestMock = <ClientRequest>{
                 on: (type: string, cb: (data: Error) => {}) => {
                     if (type === "error") {
                         cb(new Error("Invalid"));
@@ -69,7 +70,7 @@ describe("WebSecureClient", () => {
                 setTimeout: () => {
                 }
             };
-            const requestMock = {
+            const requestMock = <ClientRequest><any>{
                 on: (type: string, cb: (data: any) => {}) => {
                     if (type === "socket") {
                         cb(socketMock);
@@ -89,7 +90,7 @@ describe("WebSecureClient", () => {
         });
 
         it("can return data", async () => {
-            const responseMock = {
+            const responseMock = <IncomingMessage>{
                 on: (type: string, cb: (data: string) => {}) => {
                     if (type === "data") {
                         cb("hello");
@@ -99,8 +100,9 @@ describe("WebSecureClient", () => {
                 }
             };
             const getStub = sandbox.stub(https, "get");
-            getStub.callsFake((url, cb) => {
-                cb(responseMock);
+            (<any>getStub).callsFake((url: string, callback?: (res: IncomingMessage) => void) => {
+                callback(responseMock);
+                return <ClientRequest>{};
             });
             const obj = new WebSecureClient();
             const data = await obj.getText("https://a.com");
@@ -110,7 +112,7 @@ describe("WebSecureClient", () => {
 
     describe("getJson", () => {
         it("can be called and get data", async () => {
-            const responseMock = {
+            const responseMock = <IncomingMessage>{
                 on: (type: string, cb: (data: string) => {}) => {
                     if (type === "data") {
                         cb(JSON.stringify({a: "b", c: [1, 2, 3]}));
@@ -120,8 +122,9 @@ describe("WebSecureClient", () => {
                 }
             };
             const getStub = sandbox.stub(https, "get");
-            getStub.callsFake((url, cb) => {
-                cb(responseMock);
+            (<any>getStub).callsFake((url: string, callback?: (res: IncomingMessage) => void) => {
+                callback(responseMock);
+                return <ClientRequest>{};
             });
             const obj = new WebSecureClient();
             const data = await obj.getJson("https://a.com");
